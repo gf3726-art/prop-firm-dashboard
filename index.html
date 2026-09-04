@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Prop Firm Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root{
+    --bg: #0d1117;
+    --panel: #141a23;
+    --panel-border: #232b38;
+    --text: #e8ecf1;
+    --muted: #7c8798;
+    --loss: #e0554f;
+    --gain: #35c48f;
+    --neutral: #d7a63c;
+    --accent: #4d8cff;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background: radial-gradient(circle at 15% 0%, #131a24 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:'Space Grotesk', sans-serif;
+    padding:48px 24px 80px;
+  }
+  .wrap{ max-width:1200px; margin:0 auto; }
+  header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:1px solid var(--panel-border);
+    padding-bottom:24px; margin-bottom:40px; flex-wrap:wrap; gap:16px;
+  }
+  h1{ font-size:28px; font-weight:700; margin:0; letter-spacing:-0.01em; }
+  header p{ margin:6px 0 0; color:var(--muted); font-size:14px; }
+  .stamp{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--muted); text-align:right; }
+
+  .hero{
+    display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:1px;
+    background:var(--panel-border); border:1px solid var(--panel-border);
+    border-radius:14px; overflow:hidden; margin-bottom:20px;
+  }
+  .hero .cell{ background:var(--panel); padding:28px 26px; }
+  .cell .label{ font-size:12px; color:var(--muted); margin-bottom:10px; }
+  .cell .value{ font-family:'JetBrains Mono', monospace; font-size:34px; font-weight:700; line-height:1; }
+  .loss{ color:var(--loss); }
+  .gain{ color:var(--gain); }
+  .hero .cell:first-child .value{ font-size:40px; }
+  .bar{ margin-top:16px; height:6px; border-radius:3px; background:#1c2431; overflow:hidden; display:flex; }
+  .bar .seg{ height:100%; }
+
+  section.grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:16px; }
+  .card{ background:var(--panel); border:1px solid var(--panel-border); border-radius:14px; padding:22px; }
+  .card h3{ margin:0 0 18px; font-size:13px; font-weight:600; color:var(--muted); display:flex; align-items:center; gap:8px; }
+  .dot{ width:7px; height:7px; border-radius:50%; }
+  .stat-row{ display:flex; justify-content:space-between; align-items:baseline; padding:11px 0; border-top:1px solid var(--panel-border); }
+  .stat-row:first-of-type{ border-top:none; }
+  .stat-row .k{ font-size:13px; color:var(--text); }
+  .stat-row .v{ font-family:'JetBrains Mono', monospace; font-size:17px; font-weight:700; }
+
+  .funnel{ background:var(--panel); border:1px solid var(--panel-border); border-radius:14px; padding:26px; margin-bottom:32px; }
+  .funnel h3{ margin:0 0 20px; font-size:13px; font-weight:600; color:var(--muted); }
+  .frow{ margin-bottom:14px; }
+  .frow:last-child{ margin-bottom:0; }
+  .frow .top{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; color:var(--muted); }
+  .frow .top b{ color:var(--text); font-weight:600; }
+  .frow .top .n{ font-family:'JetBrains Mono', monospace; color:var(--text); font-weight:700; }
+  .track{ height:10px; border-radius:5px; background:#1c2431; overflow:hidden; }
+  .fill{ height:100%; border-radius:5px; }
+
+  .section-title{ font-size:18px; font-weight:700; margin:0 0 4px; }
+  .section-sub{ font-size:13px; color:var(--muted); margin:0 0 18px; }
+
+  .table-card{ background:var(--panel); border:1px solid var(--panel-border); border-radius:14px; overflow:hidden; margin-bottom:32px; }
+  .table-scroll{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; min-width:1300px; }
+  thead th{
+    text-align:left; font-size:11px; color:var(--muted); padding:14px 12px;
+    border-bottom:1px solid var(--panel-border); white-space:nowrap; font-weight:600;
+  }
+  thead tr.group th{
+    font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);
+    padding:8px 12px 4px; border-bottom:none;
+  }
+  tbody td{ padding:12px; font-size:13px; border-bottom:1px solid #1a212c; white-space:nowrap; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:#171f2a; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  .pill{ display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; font-family:'JetBrains Mono', monospace; }
+  .pill.fail{ background:rgba(224,85,79,0.15); color:var(--loss); }
+  .pill.pass{ background:rgba(53,196,143,0.15); color:var(--gain); }
+  .pill.active{ background:rgba(77,140,255,0.15); color:var(--accent); }
+  .pill.dash{ background:rgba(124,135,152,0.12); color:var(--muted); }
+  .totals-row td{ background:#171f2a; font-weight:700; border-top:1px solid var(--panel-border); }
+  .purchase-bundle{ font-weight:700; text-align:center; vertical-align:middle; }
+  .purchase-price{ text-align:center; vertical-align:middle; }
+  .purchase-date,.purchase-firm{ vertical-align:middle; }
+  .divider{ border-left:1px solid var(--panel-border); }
+
+  footer{ margin-top:36px; text-align:center; color:var(--muted); font-size:12px; }
+
+  @media (max-width:720px){
+    .hero{ grid-template-columns:1fr; }
+    section.grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Prop Firm Dashboard</h1>
+      <p>Funded account list — profit &amp; loss overview</p>
+    </div>
+    <div class="stamp" id="accountCount">— accounts tracked</div>
+  </header>
+
+  <div class="hero">
+    <div class="cell">
+      <div class="label">Net Profit / Loss</div>
+      <div class="value" id="netPL">—</div>
+      <div class="bar"><div class="seg" id="netBar" style="width:100%;"></div></div>
+    </div>
+    <div class="cell">
+      <div class="label">Total Invested</div>
+      <div class="value" id="totalInvest">—</div>
+    </div>
+    <div class="cell">
+      <div class="label">Total Payout</div>
+      <div class="value gain" id="totalPayout">—</div>
+    </div>
+  </div>
+
+  <section class="grid">
+    <div class="card">
+      <h3><span class="dot" style="background:var(--accent);"></span>Active Accounts</h3>
+      <div class="stat-row"><span class="k">Step 1 Active</span><span class="v" id="s1Active">—</span></div>
+      <div class="stat-row"><span class="k">Step 2 Active</span><span class="v" id="s2Active">—</span></div>
+      <div class="stat-row"><span class="k">Total Accounts</span><span class="v" id="totalAcc">—</span></div>
+    </div>
+    <div class="card">
+      <h3><span class="dot" style="background:var(--gain);"></span>Passed</h3>
+      <div class="stat-row"><span class="k">Step 1 Passed</span><span class="v gain" id="s1Pass">—</span></div>
+      <div class="stat-row"><span class="k">Step 2 Passed</span><span class="v" id="s2Pass">—</span></div>
+      <div class="stat-row"><span class="k">Live Funded (Master)</span><span class="v" id="masterCount">—</span></div>
+    </div>
+    <div class="card">
+      <h3><span class="dot" style="background:var(--loss);"></span>Failed</h3>
+      <div class="stat-row"><span class="k">Step 1 Failed</span><span class="v" id="s1Fail">—</span></div>
+      <div class="stat-row"><span class="k">Step 2 Failed</span><span class="v loss" id="s2Fail">—</span></div>
+      <div class="stat-row"><span class="k">Total Failed</span><span class="v loss" id="totalFail">—</span></div>
+    </div>
+  </section>
+
+  <div class="funnel">
+    <h3>Account funnel</h3>
+    <div class="frow">
+      <div class="top"><b>Step 1</b><span class="n" id="s1Line">—</span></div>
+      <div class="track"><div class="fill" id="s1Bar" style="background:var(--gain);"></div></div>
+    </div>
+    <div class="frow">
+      <div class="top"><b>Step 2</b><span class="n" id="s2Line">—</span></div>
+      <div class="track"><div class="fill" id="s2Bar" style="background:var(--neutral);"></div></div>
+    </div>
+    <div class="frow">
+      <div class="top"><b>Total failed</b><span class="n" id="failLine">—</span></div>
+      <div class="track"><div class="fill" id="failBar" style="background:var(--loss);"></div></div>
+    </div>
+  </div>
+
+  <div>
+    <p class="section-title">Funded accounts list</p>
+    <p class="section-sub">Step 1 → Step 2 → Master (live funded). A failed account stays in the history, while each reset ID is counted as a separate account because it has a different ID.</p>
+  </div>
+  <div class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr class="group">
+            <th colspan="5"></th>
+            <th colspan="2">Step 1</th>
+            <th colspan="3">Step 1 Reset (after fail)</th>
+            <th colspan="2">Step 2</th>
+            <th colspan="3">Step 2 Reset (after fail)</th>
+            <th colspan="2">Master (live)</th>
+            <th></th>
+          </tr>
+          <tr>
+            <th>#</th><th>Date</th><th>Bundle</th><th>Price</th><th>Firm</th>
+            <th>Account ID</th><th>Status</th>
+            <th>Fee</th><th>New ID</th><th>Status</th>
+            <th>Account ID</th><th>Status</th>
+            <th>Fee</th><th>New ID</th><th>Status</th>
+            <th>Account ID</th><th>Status</th>
+            <th>Profit</th>
+          </tr>
+        </thead>
+        <tbody id="accountsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <p class="section-title">Payout data</p>
+    <p class="section-sub" id="payoutSub">—</p>
+  </div>
+  <div class="table-card" style="margin-bottom:0;">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Account ID</th><th>Master account ID</th>
+            <th>Payout 1</th><th>Date</th><th>Payout 2</th><th>Date</th><th>Payout 3</th><th>Date</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="payoutsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>Edit the ACCOUNTS and PAYOUTS lists in this file's code to add new rows — everything above updates automatically.</footer>
+
+</div>
+
+<script>
+/* ============================================================
+   EDIT YOUR DATA HERE. Everything above is generated from this.
+   ============================================================ */
+
+const ACCOUNTS = [
+  { date:"27 May 2024", bundle:"No",  price:34.20, firm:"FundingPips",
+    step1Id:"5169249", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"6 Mar 2025", bundle:"No", price:32.03, firm:"FundedNext",
+    step1Id:"11262791", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"9 Apr 2025", bundle:"No", price:32.00, firm:"FundedNext",
+    step1Id:"11307507", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"4 Dec 2025", bundle:"No", price:17.00, firm:"GOAT",
+    step1Id:"314307315", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"1 Jan 2026", bundle:"Yes", price:39.96, firm:"GOAT",
+    step1Id:"314351274", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"1 Jan 2026", bundle:"Yes", price:null, firm:"GOAT",
+    step1Id:"314351273", step1:"pass", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"314410992", step2:"fail", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"1 Jan 2026", bundle:"Yes", price:null, firm:"GOAT",
+    step1Id:"314351272", step1:"pass", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"314424146", step2:"fail", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"12 Feb 2026", bundle:"Yes", price:40.95, firm:"GOAT",
+    step1Id:"314495579", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"12 Feb 2026", bundle:"Yes", price:null, firm:"GOAT",
+    step1Id:"314495581", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"12 Feb 2026", bundle:"Yes", price:null, firm:"GOAT",
+    step1Id:"314495582", step1:"pass", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"314535110", step2:"fail", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"5 Mar 2026", bundle:"Yes", price:44.19, firm:"GOAT",
+    step1Id:"314615118", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"5 Mar 2026", bundle:"Yes", price:null, firm:"GOAT",
+    step1Id:"314615120", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"5 Mar 2026", bundle:"Yes", price:null, firm:"GOAT",
+    step1Id:"314615122", step1:"pass", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"314933991", step2:"fail", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"1 Jun 2026", bundle:"No", price:17.00, firm:"GOAT",
+    step1Id:"514551872", step1:"pass", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"514066735", step2:"fail", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"2 Aug 2026", bundle:"Yes", price:74.80, firm:"GOAT",
+    step1Id:"514331555", step1:"pass", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"514956990", step2:"fail", step2ResetFee:22.44, step2ResetId:"315147626", step2ResetStatus:"active",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"2 Aug 2026", bundle:"Yes", price:null, firm:"GOAT",
+    step1Id:"514623492", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"2 Aug 2026", bundle:"Yes", price:null, firm:"GOAT",
+    step1Id:"514544216", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"2 Aug 2026", bundle:"Yes", price:null, firm:"GOAT",
+    step1Id:"514173832", step1:"fail", step1ResetFee:0, step1ResetId:"—", step1ResetStatus:"dash",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+
+  { date:"2 Aug 2026", bundle:"Yes", price:null, firm:"GOAT",
+    step1Id:"514561896", step1:"fail", step1ResetFee:13.91, step1ResetId:"414385464", step1ResetStatus:"active",
+    step2Id:"—", step2:"dash", step2ResetFee:0, step2ResetId:"—", step2ResetStatus:"dash",
+    masterId:"—", master:"dash", profit:0 },
+];
+
+const PAYOUTS = [
+  { accountId:"-", masterId:"0", p1:0, d1:"—", p2:0, d2:"—", p3:0, d3:"—", status:"dash" },
+];
+
+/* ============================================================
+   Rendering logic below — no need to touch this.
+   ============================================================ */
+
+function money(n){ return n === null || n === undefined ? "—" : "$" + Number(n).toFixed(2); }
+function statusPill(s){
+  const map = { fail:["Fail","fail"], pass:["Pass","pass"], active:["Active","active"], dash:["—","dash"] };
+  const [label, cls] = map[s] || ["—","dash"];
+  return `<span class="pill ${cls}">${label}</span>`;
+}
+
+function render(){
+  const body = document.getElementById("accountsBody");
+  body.innerHTML = "";
+  let totalPrice = 0, totalReset = 0, totalProfit = 0;
+  let s1Active=0, s1Pass=0, s1Fail=0, s2Active=0, s2Pass=0, s2Fail=0, masterActive=0;
+  let resetAccountCount=0, resetActive=0;
+
+  // A purchase can contain multiple account rows. Merge the purchase-level
+  // fields (Date / Bundle / Price / Firm) vertically for bundle purchases.
+  const purchaseGroups = [];
+  let groupStart = 0;
+  for (let i = 0; i < ACCOUNTS.length; i++) {
+    const a = ACCOUNTS[i];
+    const isBundle = String(a.bundle).toLowerCase() === "yes";
+    const key = isBundle ? `${a.date}|${a.bundle}|${a.firm}` : `single-${i}`;
+    if (i === 0 || key !== purchaseGroups[purchaseGroups.length - 1].key) {
+      purchaseGroups.push({ key, start: i, end: i, bundle: isBundle });
+    } else {
+      purchaseGroups[purchaseGroups.length - 1].end = i;
+    }
+  }
+  const groupByRow = new Map();
+  purchaseGroups.forEach(g => {
+    for (let i = g.start; i <= g.end; i++) groupByRow.set(i, g);
+  });
+
+  ACCOUNTS.forEach((a, i) => {
+    if (a.price !== null) totalPrice += a.price;
+    totalReset += (a.step1ResetFee || 0) + (a.step2ResetFee || 0);
+    totalProfit += a.profit || 0;
+
+    if (a.step1 === "active") s1Active++;
+    if (a.step1 === "pass") s1Pass++;
+    if (a.step1 === "fail") s1Fail++;
+    if (a.step2 === "active") s2Active++;
+    if (a.step2 === "pass") s2Pass++;
+    if (a.step2 === "fail") s2Fail++;
+    if (a.master === "active") masterActive++;
+    if (a.step1ResetId && a.step1ResetId !== "—" && a.step1ResetStatus === "active") s1Active++;
+    if (a.step2ResetId && a.step2ResetId !== "—" && a.step2ResetStatus === "active") s2Active++;
+    if (a.step1ResetId && a.step1ResetId !== "—") { resetAccountCount++; if (a.step1ResetStatus === "active") resetActive++; }
+    if (a.step2ResetId && a.step2ResetId !== "—") { resetAccountCount++; if (a.step2ResetStatus === "active") resetActive++; }
+
+    const priceCell = a.price !== null ? money(a.price) : "";
+    const g = groupByRow.get(i);
+    const isGroupFirst = g && i === g.start;
+    const rowspan = g ? (g.end - g.start + 1) : 1;
+    const purchaseCells = isGroupFirst
+      ? `<td rowspan="${rowspan}" class="purchase-date">${a.date}</td>
+         <td rowspan="${rowspan}" class="purchase-bundle">${a.bundle === "Yes" ? "BUNDLE" : a.bundle}</td>
+         <td rowspan="${rowspan}" class="mono purchase-price">${priceCell}</td>
+         <td rowspan="${rowspan}" class="purchase-firm">${a.firm}</td>`
+      : "";
+    body.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>${i+1}</td>${purchaseCells}
+        <td class="mono">${a.step1Id}</td><td>${statusPill(a.step1)}</td>
+        <td class="mono">${money(a.step1ResetFee)}</td><td class="mono">${a.step1ResetId}</td><td>${statusPill(a.step1ResetStatus)}</td>
+        <td class="mono">${a.step2Id}</td><td>${statusPill(a.step2)}</td>
+        <td class="mono">${money(a.step2ResetFee)}</td><td class="mono">${a.step2ResetId}</td><td>${statusPill(a.step2ResetStatus)}</td>
+        <td class="mono">${a.masterId}</td><td>${statusPill(a.master)}</td>
+        <td class="mono">${money(a.profit)}</td>
+      </tr>
+    `);
+  });
+
+  body.insertAdjacentHTML("beforeend", `
+    <tr class="totals-row">
+      <td colspan="3">Totals</td>
+      <td class="mono">${money(totalPrice)}</td>
+      <td></td><td></td><td></td>
+      <td class="mono">${money(ACCOUNTS.reduce((s,a)=>s+(a.step1ResetFee||0),0))}</td>
+      <td colspan="2"></td>
+      <td></td><td></td>
+      <td class="mono">${money(ACCOUNTS.reduce((s,a)=>s+(a.step2ResetFee||0),0))}</td>
+      <td colspan="2"></td>
+      <td></td><td></td>
+      <td class="mono">${money(totalProfit)}</td>
+    </tr>
+  `);
+
+  const totalInvest = totalPrice + totalReset;
+  const totalPayout = PAYOUTS.reduce((sum,p) => sum + (p.p1||0) + (p.p2||0) + (p.p3||0), 0);
+  const netPL = totalPayout - totalInvest;
+
+  document.getElementById("accountCount").textContent = `${ACCOUNTS.length + resetAccountCount} accounts tracked (${ACCOUNTS.length} original + ${resetAccountCount} reset)`;
+  document.getElementById("netPL").textContent = (netPL < 0 ? "\u2212" : "") + money(Math.abs(netPL));
+  document.getElementById("netPL").className = "value " + (netPL < 0 ? "loss" : "gain");
+  document.getElementById("netBar").style.background = netPL < 0 ? "var(--loss)" : "var(--gain)";
+  document.getElementById("totalInvest").textContent = money(totalInvest);
+  document.getElementById("totalPayout").textContent = money(totalPayout);
+
+  document.getElementById("s1Active").textContent = s1Active;
+  document.getElementById("s2Active").textContent = s2Active;
+  document.getElementById("totalAcc").textContent = ACCOUNTS.length + resetAccountCount;
+  document.getElementById("s1Pass").textContent = s1Pass;
+  document.getElementById("s2Pass").textContent = s2Pass;
+  document.getElementById("masterCount").textContent = masterActive;
+  document.getElementById("s1Fail").textContent = s1Fail;
+  document.getElementById("s2Fail").textContent = s2Fail;
+  document.getElementById("totalFail").textContent = s1Fail + s2Fail;
+
+  const total = (ACCOUNTS.length + resetAccountCount) || 1;
+  document.getElementById("s1Line").textContent = `${s1Active} active · ${s1Pass} passed · ${s1Fail} failed`;
+  document.getElementById("s1Bar").style.width = Math.round((s1Pass/total)*100) + "%";
+  document.getElementById("s2Line").textContent = `${s2Active} active · ${s2Pass} passed · ${s2Fail} failed`;
+  document.getElementById("s2Bar").style.width = Math.round(((s2Active+s2Fail)/total)*100) + "%";
+  document.getElementById("failLine").textContent = `${s1Fail+s2Fail} of ${total}`;
+  document.getElementById("failBar").style.width = Math.round(((s1Fail+s2Fail)/total)*100) + "%";
+
+  const payBody = document.getElementById("payoutsBody");
+  payBody.innerHTML = "";
+  PAYOUTS.forEach((p, i) => {
+    payBody.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td>${i+1}</td><td class="mono">${p.accountId}</td><td class="mono">${p.masterId}</td>
+        <td class="mono">${money(p.p1)}</td><td>${p.d1}</td>
+        <td class="mono">${money(p.p2)}</td><td>${p.d2}</td>
+        <td class="mono">${money(p.p3)}</td><td>${p.d3}</td>
+        <td>${statusPill(p.status)}</td>
+      </tr>
+    `);
+  });
+  document.getElementById("payoutSub").textContent =
+    totalPayout > 0 ? `$${totalPayout.toFixed(2)} paid out so far` : "No payouts recorded yet on any account";
+}
+
+render();
+</script>
+</body>
+</html>
