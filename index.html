@@ -296,6 +296,8 @@ function toggleAuth(){const signup=$("authMode").value!=="signup";$("authMode").
 $("addAccountBtn").onclick=()=>openModal("account");$("addPayoutBtn").onclick=()=>openModal("payout");$("refreshBtn").onclick=loadData;$("signOutBtn").onclick=async()=>{await supabase.auth.signOut();showAuth()};$("cancelModal").onclick=closeModal;$("saveAccountBtn").onclick=saveAccount;$("savePayoutBtn").onclick=savePayout;$("authButton").onclick=handleAuth;
 supabase.auth.onAuthStateChange((event,session)=>{if(session)showApp();else showAuth()});(async()=>{const {data}=await supabase.auth.getSession();if(data.session)showApp();else showAuth()})();
 }
+})();
+}
 document.getElementById("aiAskBtn").addEventListener("click", async () => {
   const question = document.getElementById("aiQuestion").value.trim();
   const answerBox = document.getElementById("aiAnswer");
