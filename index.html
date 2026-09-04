@@ -70,6 +70,13 @@
 
   .section-title{ font-size:18px; font-weight:700; margin:0 0 4px; }
   .section-sub{ font-size:13px; color:var(--muted); margin:0 0 18px; }
+  .performance-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;}
+  .performance-card{background:var(--panel);border:1px solid var(--panel-border);border-radius:14px;padding:22px;}
+  .performance-card h3{margin:0 0 18px;font-size:13px;font-weight:600;color:var(--muted);}
+  .performance-value{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;line-height:1.1;}
+  .performance-detail{font-size:11px;color:var(--muted);margin-top:7px;}
+  @media(max-width:720px){.performance-grid{grid-template-columns:1fr;gap:10px;margin-bottom:22px;}}
+
 
   .table-card{ background:var(--panel); border:1px solid var(--panel-border); border-radius:14px; overflow:hidden; margin-bottom:32px; }
   .table-scroll{ overflow-x:auto; }
@@ -171,7 +178,7 @@
 <body>
 <div id="authOverlay" class="auth-overlay hidden"><div class="auth-card"><h2 id="authTitle">Sign in to your dashboard</h2><p>Your prop-firm data is stored privately in Supabase.</p><input type="hidden" id="authMode" value="signin"><div class="field"><label>Email</label><input id="authEmail" type="email" placeholder="you@example.com"></div><div class="field" style="margin-top:12px"><label>Password</label><input id="authPassword" type="password" placeholder="At least 6 characters"></div><button class="btn primary" id="authButton" style="width:100%;margin-top:16px">Sign in</button><div class="auth-msg" id="authMsg"></div><div class="auth-toggle" id="authToggle">New here? <button type="button" onclick="toggleAuth()">Create account</button></div></div></div>
 <div id="modalOverlay" class="modal-overlay hidden"><div class="modal-card" style="max-height:90vh;overflow:auto"><h2 id="modalTitle">Add Account</h2><p>Save the information below to your private database.</p><div id="accountForm"><div class="form-grid">
-<div class="field"><label>Purchase date</label><input id="a_purchase_date" type="date"></div><div class="field"><label>Bundle</label><select id="a_bundle"><option>No</option><option>Yes</option></select></div><div class="field"><label>Price ($)</label><input id="a_price" type="number" step="0.01"></div><div class="field"><label>Firm</label><input id="a_firm"></div><div class="field"><label>Funding Size ($)</label><input id="a_funding_size" type="number" step="1" placeholder="e.g. 5000"></div><div class="field"><label>Step 1 ID</label><input id="a_step1_id"></div><div class="field"><label>Step 1 Status</label><select id="a_step1_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field"><label>Step 1 Reset Fee</label><input id="a_step1_reset_fee" type="number" step="0.01"></div><div class="field"><label>Step 1 Reset ID</label><input id="a_step1_reset_id"></div><div class="field"><label>Step 1 Reset Status</label><select id="a_step1_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field edit-step2-field"><label>Step 2 ID</label><input id="a_step2_id"></div><div class="field edit-step2-field"><label>Step 2 Status</label><select id="a_step2_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field edit-step2-field"><label>Step 2 Reset Fee</label><input id="a_step2_reset_fee" type="number" step="0.01"></div><div class="field edit-step2-field"><label>Step 2 Reset ID</label><input id="a_step2_reset_id"></div><div class="field edit-step2-field"><label>Step 2 Reset Status</label><select id="a_step2_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field edit-master-field"><label>Master ID</label><input id="a_master_id"></div><div class="field edit-master-field"><label>Master Status</label><select id="a_master_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field edit-master-field"><label>Profit ($)</label><input id="a_profit" type="number" step="0.01"></div></div><div class="modal-actions"><button class="btn" id="cancelModal">Cancel</button><button class="btn primary" id="saveAccountBtn">Save Account</button></div></div>
+<div class="field"><label>Purchase date</label><input id="a_purchase_date" type="date"></div><div class="field"><label>Bundle</label><select id="a_bundle"><option>No</option><option>Yes</option></select></div><div class="field"><label>Price ($)</label><input id="a_price" type="number" step="0.01"></div><div class="field"><label>Firm</label><input id="a_firm"></div><div class="field"><label>Funding Size ($)</label><input id="a_funding_size" type="number" step="1" placeholder="e.g. 5000"></div><div class="field"><label>Step 1 ID</label><input id="a_step1_id"></div><div class="field"><label>Step 1 Status</label><select id="a_step1_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field"><label>Step 1 Reset Fee</label><input id="a_step1_reset_fee" type="number" step="0.01"></div><div class="field"><label>Step 1 Reset ID</label><input id="a_step1_reset_id"></div><div class="field"><label>Step 1 Reset Status</label><select id="a_step1_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field edit-step2-field"><label>Step 2 ID</label><input id="a_step2_id"></div><div class="field edit-step2-field"><label>Step 2 Status</label><select id="a_step2_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field edit-step2-field"><label>Step 2 Reset Fee</label><input id="a_step2_reset_fee" type="number" step="0.01"></div><div class="field edit-step2-field"><label>Step 2 Reset ID</label><input id="a_step2_reset_id"></div><div class="field edit-step2-field"><label>Step 2 Reset Status</label><select id="a_step2_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field edit-master-field"><label>Master ID</label><input id="a_master_id"></div><div class="field edit-master-field"><label>Master Status</label><select id="a_master_status"><option value="dash">—</option><option value="active">Active</option><option value="fail">Fail</option></select></div><div class="field edit-master-field"><label>Profit ($)</label><input id="a_profit" type="number" step="0.01"></div></div><div class="modal-actions"><button class="btn" id="cancelModal">Cancel</button><button class="btn primary" id="saveAccountBtn">Save Account</button></div></div>
 <div id="payoutForm" class="hidden"><div class="form-grid"><div class="field"><label>Master ID</label><input id="p_master_id" placeholder="Enter master account ID"></div><div class="field"><label>Payout 1 ($)</label><input id="p_payout_1" type="number" step="0.01"></div><div class="field"><label>Payout 1 Date</label><input id="p_payout_1_date" type="date"></div><div class="field"><label>Payout 2 ($)</label><input id="p_payout_2" type="number" step="0.01"></div><div class="field"><label>Payout 2 Date</label><input id="p_payout_2_date" type="date"></div><div class="field"><label>Payout 3 ($)</label><input id="p_payout_3" type="number" step="0.01"></div><div class="field"><label>Payout 3 Date</label><input id="p_payout_3_date" type="date"></div><div class="field"><label>Status</label><select id="p_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" id="savePayoutBtn">Save Payout</button></div></div></div></div>
 <div class="wrap hidden" id="appWrap">
 
@@ -241,6 +248,43 @@
       <div class="track"><div class="fill" id="failBar" style="background:var(--loss);"></div></div>
     </div>
   </div>
+
+  <div>
+    <p class="section-title">Performance Statistics</p>
+    <p class="section-sub">Key conversion and account-performance metrics based on your tracked account journeys.</p>
+  </div>
+  <section class="performance-grid">
+    <div class="performance-card">
+      <h3>Step 1 Pass Rate</h3>
+      <div class="performance-value gain" id="perfS1PassRate">—</div>
+      <div class="performance-detail" id="perfS1PassDetail">—</div>
+    </div>
+    <div class="performance-card">
+      <h3>Step 2 Pass Rate</h3>
+      <div class="performance-value gain" id="perfS2PassRate">—</div>
+      <div class="performance-detail" id="perfS2PassDetail">—</div>
+    </div>
+    <div class="performance-card">
+      <h3>Funded Conversion</h3>
+      <div class="performance-value gain" id="perfFundedRate">—</div>
+      <div class="performance-detail" id="perfFundedDetail">—</div>
+    </div>
+    <div class="performance-card">
+      <h3>Overall Failure Rate</h3>
+      <div class="performance-value loss" id="perfFailRate">—</div>
+      <div class="performance-detail" id="perfFailDetail">—</div>
+    </div>
+    <div class="performance-card">
+      <h3>Reset Rate</h3>
+      <div class="performance-value" id="perfResetRate">—</div>
+      <div class="performance-detail" id="perfResetDetail">—</div>
+    </div>
+    <div class="performance-card">
+      <h3>Investment / Account</h3>
+      <div class="performance-value" id="perfAvgInvestment">—</div>
+      <div class="performance-detail" id="perfAvgInvestmentDetail">—</div>
+    </div>
+  </section>
 
   <!-- AI opens from the floating button at the bottom-right -->
 
@@ -358,6 +402,34 @@ function render(){
  $("accountCount").textContent=`${ACCOUNTS.length+resetAccountCount} accounts tracked (${ACCOUNTS.length} original + ${resetAccountCount} reset)`;$("netPL").textContent=(netPL<0?"−":"")+money(Math.abs(netPL));$("netPL").className="value "+(netPL<0?"loss":"gain");$("netBar").style.background=netPL<0?"var(--loss)":"var(--gain)";$("totalInvest").textContent=money(totalInvest);$("totalPayout").textContent=money(totalPayout);
  $("s1Active").textContent=s1Active;$("s2Active").textContent=s2Active;$("totalAcc").textContent=ACCOUNTS.length+resetAccountCount;$("s1Pass").textContent=s1Pass;$("s2Pass").textContent=s2Pass;$("masterCount").textContent=masterActive;$("s1Fail").textContent=s1Fail;$("s2Fail").textContent=s2Fail;$("totalFail").textContent=s1Fail+s2Fail;
  const total=(ACCOUNTS.length+resetAccountCount)||1;$("s1Line").textContent=`${s1Active} active · ${s1Pass} passed · ${s1Fail} failed`;$("s1Bar").style.width=Math.round((s1Pass/total)*100)+"%";$("s2Line").textContent=`${s2Active} active · ${s2Pass} passed · ${s2Fail} failed`;$("s2Bar").style.width=Math.round(((s2Active+s2Fail)/total)*100)+"%";$("failLine").textContent=`${s1Fail+s2Fail} of ${total}`;$("failBar").style.width=Math.round(((s1Fail+s2Fail)/total)*100)+"%";
+ const trackedAccounts=ACCOUNTS.length+resetAccountCount;
+ const s1Decided=s1Pass+s1Fail;
+ const s2Decided=s2Pass+s2Fail;
+ const totalFailures=s1Fail+s2Fail;
+ const s1PassRate=s1Decided?Math.round((s1Pass/s1Decided)*100):0;
+ const s2PassRate=s2Decided?Math.round((s2Pass/s2Decided)*100):0;
+ const fundedRate=trackedAccounts?Math.round((masterActive/trackedAccounts)*100):0;
+ const failureRate=trackedAccounts?Math.round((totalFailures/trackedAccounts)*100):0;
+ const resetRate=trackedAccounts?Math.round((resetAccountCount/trackedAccounts)*100):0;
+ const avgInvestment=trackedAccounts?totalInvest/trackedAccounts:0;
+
+ $("perfS1PassRate").textContent=s1Decided?`${s1PassRate}%`:"0%";
+ $("perfS1PassDetail").textContent=`${s1Pass} passed out of ${s1Decided} completed`;
+
+ $("perfS2PassRate").textContent=s2Decided?`${s2PassRate}%`:"0%";
+ $("perfS2PassDetail").textContent=`${s2Pass} passed out of ${s2Decided} completed`;
+
+ $("perfFundedRate").textContent=trackedAccounts?`${fundedRate}%`:"0%";
+ $("perfFundedDetail").textContent=`${masterActive} live funded out of ${trackedAccounts} tracked`;
+
+ $("perfFailRate").textContent=trackedAccounts?`${failureRate}%`:"0%";
+ $("perfFailDetail").textContent=`${totalFailures} Step 1/2 failures recorded`;
+
+ $("perfResetRate").textContent=trackedAccounts?`${resetRate}%`:"0%";
+ $("perfResetDetail").textContent=`${resetAccountCount} reset attempts counted`;
+
+ $("perfAvgInvestment").textContent=trackedAccounts?money(avgInvestment):"$0.00";
+ $("perfAvgInvestmentDetail").textContent=`${money(totalInvest)} total investment ÷ ${trackedAccounts} tracked`;
  const mobileBody=$("mobileAccountsList");
  mobileBody.innerHTML=ACCOUNTS.map((a,i)=>`<div class="mobile-account-card">
    <div class="mobile-account-top"><div><div class="mobile-account-title">Account ${i+1} · ${a.firm||"—"}</div><div class="mobile-account-sub">${displayDate(a.purchase_date)} · ${a.bundle==="Yes"?"Bundle":"Single"} · ${money(a.price)} · Funding ${a.funding_size!=null && a.funding_size!=="" ? "$"+Number(a.funding_size).toLocaleString("en-US",{maximumFractionDigits:0}) : "—"}</div></div><div>${statusPill(a.master_status||a.step2_status||a.step1_status||"dash")}</div></div>
