@@ -114,6 +114,59 @@
   @media(max-width:720px){.form-grid{grid-template-columns:1fr}.header-actions{width:100%;justify-content:flex-start}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+
+<style>
+  /* Responsive dashboard + floating AI */
+  html{scroll-behavior:smooth;}
+  body{overflow-x:hidden;}
+  .mobile-list{display:none;}
+  .ai-fab{position:fixed;right:24px;bottom:24px;width:58px;height:58px;border:0;border-radius:50%;background:#05070b;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:900;font-size:25px;}
+  .ai-fab:hover{transform:translateY(-2px);}
+  .ai-panel{position:fixed;right:24px;bottom:94px;width:min(390px,calc(100vw - 32px));height:min(560px,calc(100vh - 120px));background:var(--panel);border:1px solid var(--panel-border);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.5);z-index:901;display:none;overflow:hidden;}
+  .ai-panel.open{display:flex;flex-direction:column;}
+  .ai-head{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid var(--panel-border);background:#101620;}
+  .ai-head-title{font-weight:700;font-size:14px;}.ai-head-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+  .ai-close{border:0;background:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
+  .ai-messages{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
+  .ai-msg{max-width:88%;padding:10px 12px;border-radius:12px;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;}
+  .ai-msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px;}
+  .ai-msg.bot{align-self:flex-start;background:#1a222e;color:var(--text);border-bottom-left-radius:4px;}
+  .ai-input-row{display:flex;gap:7px;padding:10px;border-top:1px solid var(--panel-border);}
+  .ai-input-row input{min-width:0;flex:1;background:#0f151d;border:1px solid var(--panel-border);color:var(--text);padding:10px 11px;border-radius:9px;outline:none;}
+  .ai-input-row button{flex:0 0 auto;}
+  .ai-hint{font-size:10px;color:var(--muted);padding:0 12px 9px;}
+  .mobile-account-card,.mobile-payout-card{background:var(--panel);border:1px solid var(--panel-border);border-radius:14px;padding:15px;margin-bottom:12px;}
+  .mobile-account-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px;}
+  .mobile-account-title{font-weight:700;font-size:14px;}.mobile-account-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+  .mobile-section{border-top:1px solid var(--panel-border);padding-top:11px;margin-top:11px;}
+  .mobile-section-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+  .mobile-kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .mobile-kv div{background:#101620;border-radius:8px;padding:8px;}
+  .mobile-kv span{display:block;font-size:10px;color:var(--muted);margin-bottom:3px;}.mobile-kv b{font-size:12px;word-break:break-word;}
+  .mobile-actions{display:flex;gap:7px;margin-top:12px;}.mobile-actions .btn{flex:1;}
+  .mobile-payout-card .mobile-kv{grid-template-columns:1fr 1fr;}
+  @media(max-width:720px){
+    body{padding:22px 12px 70px;}
+    .wrap{width:100%;}
+    header{padding-bottom:18px;margin-bottom:22px;align-items:flex-start;}
+    h1{font-size:23px;} header p{font-size:12px;}
+    .header-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+    .header-actions .stamp{grid-column:1/-1;text-align:left;}
+    .header-actions .btn{width:100%;}
+    .hero{grid-template-columns:1fr;margin-bottom:12px;}
+    .hero .cell{padding:20px;} .hero .cell:first-child .value{font-size:32px;} .cell .value{font-size:28px;}
+    section.grid{grid-template-columns:1fr;gap:10px;margin-bottom:10px;}
+    .card{padding:17px;}
+    .funnel{padding:18px;margin-bottom:22px;}
+    .table-card{display:none;}
+    .mobile-list{display:block;}
+    .section-title{font-size:16px;} .section-sub{font-size:12px;}
+    .ai-fab{right:14px;bottom:14px;width:54px;height:54px;}
+    .ai-panel{right:8px;bottom:76px;width:calc(100vw - 16px);height:min(600px,calc(100vh - 92px));border-radius:16px;}
+    .form-grid{grid-template-columns:1fr;}
+    .modal-card{padding:18px;max-height:94vh!important;}
+  }
+</style>
 </head>
 <body>
 <div id="authOverlay" class="auth-overlay hidden"><div class="auth-card"><h2 id="authTitle">Sign in to your dashboard</h2><p>Your prop-firm data is stored privately in Supabase.</p><input type="hidden" id="authMode" value="signin"><div class="field"><label>Email</label><input id="authEmail" type="email" placeholder="you@example.com"></div><div class="field" style="margin-top:12px"><label>Password</label><input id="authPassword" type="password" placeholder="At least 6 characters"></div><button class="btn primary" id="authButton" style="width:100%;margin-top:16px">Sign in</button><div class="auth-msg" id="authMsg"></div><div class="auth-toggle" id="authToggle">New here? <button type="button" onclick="toggleAuth()">Create account</button></div></div></div>
@@ -189,12 +242,7 @@
     </div>
   </div>
 
-  <div class="ai-card">
-    <p class="section-title">🤖 AI Assistant</p>
-   <p class="section-sub">Ask questions about your prop-firm data. AI uses your private dashboard data to answer.</p>
-<div class="ai-row"><input id="aiQuestion" placeholder="e.g. How much have I invested?"><button class="btn primary" id="aiAskBtn">Ask AI</button></div>
-<div id="aiAnswer" class="ai-note" style="white-space:pre-wrap;margin-top:14px"></div>
-  </div>
+  <!-- AI opens from the floating button at the bottom-right -->
 
   <div>
     <p class="section-title">Funded accounts list</p>
@@ -227,6 +275,7 @@
       </table>
     </div>
   </div>
+  <div id="mobileAccountsList" class="mobile-list"></div>
 
   <div>
     <p class="section-title">Payout data</p>
@@ -245,9 +294,22 @@
       </table>
     </div>
   </div>
+  <div id="mobilePayoutsList" class="mobile-list"></div>
 
   <footer>Your data is stored in Supabase. Use the buttons above to add or edit accounts and payouts.</footer>
 
+</div>
+
+
+<button id="aiFab" class="ai-fab" aria-label="Open AI Assistant" title="AI Assistant">✦</button>
+<div id="aiPanel" class="ai-panel" aria-hidden="true">
+  <div class="ai-head">
+    <div><div class="ai-head-title">🤖 AI Assistant</div><div class="ai-head-sub">Prop-firm data + trading questions</div></div>
+    <button id="aiClose" class="ai-close" aria-label="Close">×</button>
+  </div>
+  <div id="aiMessages" class="ai-messages"><div class="ai-msg bot">Hi! Ask me about your dashboard, investment, losses, payouts, XAUUSD, or major forex pairs. Typos are okay — you don't need perfect English.</div></div>
+  <div class="ai-hint">For “current/as of now” market questions, I’ll use the latest market snapshot available to the dashboard.</div>
+  <div class="ai-input-row"><input id="aiQuestion" autocomplete="off" placeholder="Ask anything… e.g. XAUUSD bias now"><button class="btn primary" id="aiAskBtn">Send</button></div>
 </div>
 
 <script>
@@ -279,6 +341,18 @@ function render(){
  $("accountCount").textContent=`${ACCOUNTS.length+resetAccountCount} accounts tracked (${ACCOUNTS.length} original + ${resetAccountCount} reset)`;$("netPL").textContent=(netPL<0?"−":"")+money(Math.abs(netPL));$("netPL").className="value "+(netPL<0?"loss":"gain");$("netBar").style.background=netPL<0?"var(--loss)":"var(--gain)";$("totalInvest").textContent=money(totalInvest);$("totalPayout").textContent=money(totalPayout);
  $("s1Active").textContent=s1Active;$("s2Active").textContent=s2Active;$("totalAcc").textContent=ACCOUNTS.length+resetAccountCount;$("s1Pass").textContent=s1Pass;$("s2Pass").textContent=s2Pass;$("masterCount").textContent=masterActive;$("s1Fail").textContent=s1Fail;$("s2Fail").textContent=s2Fail;$("totalFail").textContent=s1Fail+s2Fail;
  const total=(ACCOUNTS.length+resetAccountCount)||1;$("s1Line").textContent=`${s1Active} active · ${s1Pass} passed · ${s1Fail} failed`;$("s1Bar").style.width=Math.round((s1Pass/total)*100)+"%";$("s2Line").textContent=`${s2Active} active · ${s2Pass} passed · ${s2Fail} failed`;$("s2Bar").style.width=Math.round(((s2Active+s2Fail)/total)*100)+"%";$("failLine").textContent=`${s1Fail+s2Fail} of ${total}`;$("failBar").style.width=Math.round(((s1Fail+s2Fail)/total)*100)+"%";
+ const mobileBody=$("mobileAccountsList");
+ mobileBody.innerHTML=ACCOUNTS.map((a,i)=>`<div class="mobile-account-card">
+   <div class="mobile-account-top"><div><div class="mobile-account-title">Account ${i+1} · ${a.firm||"—"}</div><div class="mobile-account-sub">${displayDate(a.purchase_date)} · ${a.bundle==="Yes"?"Bundle":"Single"} · ${money(a.price)}</div></div><div>${statusPill(a.master_status||a.step2_status||a.step1_status||"dash")}</div></div>
+   <div class="mobile-section"><div class="mobile-section-title">Step 1</div><div class="mobile-kv"><div><span>Account ID</span><b>${a.step1_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step1_status||"dash")}</b></div></div></div>
+   <div class="mobile-section"><div class="mobile-section-title">Step 1 Reset</div><div class="mobile-kv"><div><span>Fee</span><b>${money(a.step1_reset_fee||0)}</b></div><div><span>New ID</span><b>${a.step1_reset_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step1_reset_status||"dash")}</b></div></div></div>
+   <div class="mobile-section"><div class="mobile-section-title">Step 2</div><div class="mobile-kv"><div><span>Account ID</span><b>${a.step2_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step2_status||"dash")}</b></div></div></div>
+   <div class="mobile-section"><div class="mobile-section-title">Step 2 Reset</div><div class="mobile-kv"><div><span>Fee</span><b>${money(a.step2_reset_fee||0)}</b></div><div><span>New ID</span><b>${a.step2_reset_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step2_reset_status||"dash")}</b></div></div></div>
+   <div class="mobile-section"><div class="mobile-section-title">Master / Profit</div><div class="mobile-kv"><div><span>Master ID</span><b>${a.master_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.master_status||"dash")}</b></div><div><span>Profit</span><b>${money(a.profit||0)}</b></div></div></div>
+   <div class="mobile-actions"><button class="btn small" onclick="editAccount(${a.id})">Edit</button><button class="btn small danger" onclick="deleteAccount(${a.id})">Delete</button></div>
+ </div>`).join("");
+ const payMobile=$("mobilePayoutsList");
+ payMobile.innerHTML=PAYOUTS.map((p,i)=>`<div class="mobile-payout-card"><div class="mobile-account-title">Payout ${i+1}</div><div class="mobile-kv" style="margin-top:10px"><div><span>Account ID</span><b>${p.account_id||"—"}</b></div><div><span>Master ID</span><b>${p.master_id||"—"}</b></div><div><span>Payout 1</span><b>${money(p.payout_1||0)}</b></div><div><span>Date</span><b>${displayDate(p.payout_1_date)}</b></div><div><span>Payout 2</span><b>${money(p.payout_2||0)}</b></div><div><span>Date</span><b>${displayDate(p.payout_2_date)}</b></div><div><span>Payout 3</span><b>${money(p.payout_3||0)}</b></div><div><span>Date</span><b>${displayDate(p.payout_3_date)}</b></div><div><span>Status</span><b>${statusPill(p.status||"dash")}</b></div></div><div class="mobile-actions"><button class="btn small" onclick="editPayout(${p.id})">Edit</button><button class="btn small danger" onclick="deletePayout(${p.id})">Delete</button></div></div>`).join("");
  const payBody=$("payoutsBody");payBody.innerHTML="";PAYOUTS.forEach((p,i)=>payBody.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td><td class="mono">${p.account_id||"—"}</td><td class="mono">${p.master_id||"—"}</td><td class="mono">${money(p.payout_1||0)}</td><td>${displayDate(p.payout_1_date)}</td><td class="mono">${money(p.payout_2||0)}</td><td>${displayDate(p.payout_2_date)}</td><td class="mono">${money(p.payout_3||0)}</td><td>${displayDate(p.payout_3_date)}</td><td>${statusPill(p.status||"dash")}</td><td><div class="table-actions"><button class="btn small" onclick="editPayout(${p.id})">Edit</button><button class="btn small danger" onclick="deletePayout(${p.id})">Delete</button></div></td></tr>`));$("payoutSub").textContent=totalPayout>0?`$${totalPayout.toFixed(2)} paid out so far`:"No payouts recorded yet on any account";
 }
 async function loadData(){ const {data}=await supabase.auth.getSession();if(!data.session)return; await supabase.rpc("claim_unowned_data"); const [{data:accounts,error:aErr},{data:payouts,error:pErr}]=await Promise.all([supabase.from("accounts").select("*").order("purchase_date",{ascending:true}).order("id",{ascending:true}),supabase.from("payouts").select("*").order("id",{ascending:true})]);if(aErr||pErr){console.error(aErr,pErr);alert("Could not load dashboard data. Please refresh.");return;}ACCOUNTS=accounts||[];PAYOUTS=payouts||[];render();}
@@ -305,54 +379,54 @@ supabase.auth.onAuthStateChange((event,session)=>{
   else showAuth();
 })();
 
-document.getElementById("aiAskBtn").addEventListener("click", async () => {
-  const question = document.getElementById("aiQuestion").value.trim();
-  const answerBox = document.getElementById("aiAnswer");
-
-  if (!question) {
-    answerBox.textContent = "Please enter a question.";
-    return;
+function normalizeQuestion(q){
+  const fixes={
+    "investmnet":"investment","invesment":"investment","investmant":"investment","loose":"lose","loosing":"losing","losingg":"losing",
+    "currencies":"currencies","curency":"currency","curreny":"currency","anlyze":"analyze","analisis":"analysis","whta":"what","whats":"what is",
+    "explainn":"explain","pofit":"profit","payoutt":"payout","accout":"account","acount":"account","bais":"bias","biass":"bias"
+  };
+  return q.split(/\b/).map(part=>fixes[part.toLowerCase()]||part).join("");
+}
+async function getMarketSnapshot(question){
+  const q=question.toLowerCase();
+  const symbols=[];
+  if(/xauusd|gold/.test(q)) symbols.push("XAUUSD=X");
+  if(/eurusd/.test(q)) symbols.push("EURUSD=X");
+  if(/gbpusd/.test(q)) symbols.push("GBPUSD=X");
+  if(/usdjpy/.test(q)) symbols.push("USDJPY=X");
+  if(/audusd/.test(q)) symbols.push("AUDUSD=X");
+  if(/usdcad/.test(q)) symbols.push("USDCAD=X");
+  if(/usdchf/.test(q)) symbols.push("USDCHF=X");
+  if(/nzdusd/.test(q)) symbols.push("NZDUSD=X");
+  if(!symbols.length) return "";
+  const rows=[];
+  for(const symbol of symbols){
+    try{
+      const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=5m`);
+      const j=await r.json(); const res=j.chart?.result?.[0]; const c=res?.indicators?.quote?.[0]?.close?.filter(Number.isFinite)||[];
+      if(c.length>=8){ const last=c[c.length-1], prev=c[c.length-2], first=c[0]; const ch=(last-first)/first*100; const recent=c.slice(-12); const avg=recent.reduce((a,b)=>a+b,0)/recent.length; const short=c.slice(-5).reduce((a,b)=>a+b,0)/5; const trend=short>avg*1.0003?"bullish":short<avg*0.9997?"bearish":"neutral"; rows.push(`${symbol.replace("=X","")}: price ${last.toFixed(5)}, day change ${ch.toFixed(2)}%, intraday trend ${trend}`); }
+    }catch(e){}
   }
-
-  answerBox.textContent = "Thinking...";
-
-  const { data, error } = await supabase.functions.invoke("ai-assistant", {
-    body: { question }
-  });
-
-  if (error) {
-    console.error(error);
-    answerBox.textContent = "AI error: " + error.message;
-    return;
-  }
-
-  answerBox.textContent = data?.answer || "No answer received.";
-});
+  return rows.length?`\n\nLIVE MARKET SNAPSHOT (latest available):\n${rows.join("\n")}`:"";
+}
+async function askAI(){
+  const input=$("aiQuestion"), q=input.value.trim(); if(!q)return;
+  const messages=$("aiMessages"); const clean=normalizeQuestion(q);
+  messages.insertAdjacentHTML("beforeend",`<div class="ai-msg user"></div>`); messages.lastElementChild.textContent=q;
+  const thinking=document.createElement("div"); thinking.className="ai-msg bot"; thinking.textContent="Thinking…"; messages.appendChild(thinking); messages.scrollTop=messages.scrollHeight; input.value="";
+  try{
+    const market=await getMarketSnapshot(clean);
+    const prompt=`Understand the user's question even if it contains spelling mistakes, grammar mistakes, or Hinglish. Never reject a question just because English is imperfect. Answer concisely and clearly. If the question is about the user's prop-firm dashboard, use the private data provided by the server. If it asks for current market bias, use the live market snapshot below when present and clearly say it is a snapshot, not a guarantee. User question: ${clean}${market}`;
+    const {data,error}=await supabase.functions.invoke("ai-assistant",{body:{question:prompt}});
+    if(error) throw error;
+    thinking.textContent=data?.answer||"No answer received.";
+  }catch(e){ console.error(e); thinking.textContent="AI error: "+(e.message||"Could not get an answer."); }
+  messages.scrollTop=messages.scrollHeight;
+}
+$("aiAskBtn").onclick=askAI; $("aiQuestion").addEventListener("keydown",e=>{if(e.key==="Enter")askAI()});
+$("aiFab").onclick=()=>{$("aiPanel").classList.add("open");$("aiPanel").setAttribute("aria-hidden","false");setTimeout(()=>$("aiQuestion").focus(),50)};
+$("aiClose").onclick=()=>{$("aiPanel").classList.remove("open");$("aiPanel").setAttribute("aria-hidden","true")};
 }
 </script>
-</body>
-</html>.addEventListener("click", async () => {
-  const question = document.getElementById("aiQuestion").value.trim();
-  const answerBox = document.getElementById("aiAnswer");
-
-  if (!question) {
-    answerBox.textContent = "Please enter a question.";
-    return;
-  }
-
-  answerBox.textContent = "Thinking...";
-
-  const { data, error } = await supabase.functions.invoke("ai-assistant", {
-    body: { question }
-  });
-
-  if (error) {
-    console.error(error);
-    answerBox.textContent = "AI error: " + error.message;
-    return;
-  }
-
-  answerBox.textContent = data?.answer || "No answer received.";
-});</script>
 </body>
 </html>
