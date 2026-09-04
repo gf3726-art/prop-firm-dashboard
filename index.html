@@ -191,9 +191,9 @@
 
   <div class="ai-card">
     <p class="section-title">🤖 AI Assistant</p>
-    <p class="section-sub">Ask questions about your prop-firm data. AI will be connected after the database/dashboard connection is verified.</p>
-    <div class="ai-row"><input id="aiQuestion" placeholder="e.g. How much have I invested?" disabled><button class="btn" disabled>Ask AI</button></div>
-    <p class="ai-note">Next step: secure AI connection using a server-side function so your API key is never exposed.</p>
+   <p class="section-sub">Ask questions about your prop-firm data. AI uses your private dashboard data to answer.</p>
+<div class="ai-row"><input id="aiQuestion" placeholder="e.g. How much have I invested?"><button class="btn primary" id="aiAskBtn">Ask AI</button></div>
+<div id="aiAnswer" class="ai-note" style="white-space:pre-wrap;margin-top:14px"></div>
   </div>
 
   <div>
@@ -296,6 +296,28 @@ function toggleAuth(){const signup=$("authMode").value!=="signup";$("authMode").
 $("addAccountBtn").onclick=()=>openModal("account");$("addPayoutBtn").onclick=()=>openModal("payout");$("refreshBtn").onclick=loadData;$("signOutBtn").onclick=async()=>{await supabase.auth.signOut();showAuth()};$("cancelModal").onclick=closeModal;$("saveAccountBtn").onclick=saveAccount;$("savePayoutBtn").onclick=savePayout;$("authButton").onclick=handleAuth;
 supabase.auth.onAuthStateChange((event,session)=>{if(session)showApp();else showAuth()});(async()=>{const {data}=await supabase.auth.getSession();if(data.session)showApp();else showAuth()})();
 }
-</script>
+document.getElementById("aiAskBtn").addEventListener("click", async () => {
+  const question = document.getElementById("aiQuestion").value.trim();
+  const answerBox = document.getElementById("aiAnswer");
+
+  if (!question) {
+    answerBox.textContent = "Please enter a question.";
+    return;
+  }
+
+  answerBox.textContent = "Thinking...";
+
+  const { data, error } = await supabase.functions.invoke("ai-assistant", {
+    body: { question }
+  });
+
+  if (error) {
+    console.error(error);
+    answerBox.textContent = "AI error: " + error.message;
+    return;
+  }
+
+  answerBox.textContent = data?.answer || "No answer received.";
+});</script>
 </body>
 </html>
