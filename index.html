@@ -294,11 +294,44 @@ function showAuth(){$("authOverlay").classList.remove("hidden");$("appWrap").cla
 async function handleAuth(){const email=val("authEmail"),password=$("authPassword").value;$("authMsg").textContent="Working...";if(!email||!password){$("authMsg").textContent="Enter email and password.";return}const mode=$("authMode").value;const result=mode==="signup"?await supabase.auth.signUp({email,password}):await supabase.auth.signInWithPassword({email,password});if(result.error){$("authMsg").textContent=result.error.message;return}if(mode==="signup"&&!result.data.session){$("authMsg").textContent="Account created. Check your email if confirmation is required, then sign in.";return}$("authMsg").textContent="";showApp()}
 function toggleAuth(){const signup=$("authMode").value!=="signup";$("authMode").value=signup?"signup":"signin";$("authTitle").textContent=signup?"Create your account":"Sign in to your dashboard";$("authButton").textContent=signup?"Create account":"Sign in";$("authToggle").innerHTML=signup?'Already have an account? <button type="button" onclick="toggleAuth()">Sign in</button>':'New here? <button type="button" onclick="toggleAuth()">Create account</button>'}window.toggleAuth=toggleAuth;
 $("addAccountBtn").onclick=()=>openModal("account");$("addPayoutBtn").onclick=()=>openModal("payout");$("refreshBtn").onclick=loadData;$("signOutBtn").onclick=async()=>{await supabase.auth.signOut();showAuth()};$("cancelModal").onclick=closeModal;$("saveAccountBtn").onclick=saveAccount;$("savePayoutBtn").onclick=savePayout;$("authButton").onclick=handleAuth;
-supabase.auth.onAuthStateChange((event,session)=>{if(session)showApp();else showAuth()});(async()=>{const {data}=await supabase.auth.getSession();if(data.session)showApp();else showAuth()})();
-}
+supabase.auth.onAuthStateChange((event,session)=>{
+  if(session) showApp();
+  else showAuth();
+});
+
+(async()=>{
+  const {data}=await supabase.auth.getSession();
+  if(data.session) showApp();
+  else showAuth();
 })();
-}
+
 document.getElementById("aiAskBtn").addEventListener("click", async () => {
+  const question = document.getElementById("aiQuestion").value.trim();
+  const answerBox = document.getElementById("aiAnswer");
+
+  if (!question) {
+    answerBox.textContent = "Please enter a question.";
+    return;
+  }
+
+  answerBox.textContent = "Thinking...";
+
+  const { data, error } = await supabase.functions.invoke("ai-assistant", {
+    body: { question }
+  });
+
+  if (error) {
+    console.error(error);
+    answerBox.textContent = "AI error: " + error.message;
+    return;
+  }
+
+  answerBox.textContent = data?.answer || "No answer received.";
+});
+}
+</script>
+</body>
+</html>.addEventListener("click", async () => {
   const question = document.getElementById("aiQuestion").value.trim();
   const answerBox = document.getElementById("aiAnswer");
 
