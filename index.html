@@ -82,7 +82,6 @@
   .performance-detail{font-size:11px;color:var(--muted);margin-top:7px;}
   @media(max-width:720px){.performance-grid{grid-template-columns:1fr;gap:10px;margin-bottom:22px;}}
 
-
   .table-card{ background:var(--panel); border:1px solid var(--panel-border); border-radius:14px; overflow:hidden; margin-bottom:32px; }
   .table-scroll{ overflow-x:auto; }
   table{ width:100%; border-collapse:collapse; min-width:1300px; }
@@ -122,31 +121,15 @@
   .btn:hover{background:#1d2734}.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.danger{color:var(--loss)}
   .btn.small{padding:5px 8px;font-size:11px}.auth-overlay,.modal-overlay{position:fixed;inset:0;background:rgba(4,7,11,.86);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
   .auth-card,.modal-card{width:min(520px,100%);background:var(--panel);border:1px solid var(--panel-border);border-radius:16px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
-  .auth-card h2,.modal-card h2{margin:0 0 6px}.auth-card p,.modal-card p{color:var(--muted);font-size:13px}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;color:var(--muted)}.field input,.field select{width:100%;padding:9px 10px;border:1px solid var(--panel-border);border-radius:8px;background:#0f151d;color:var(--text);font:13px 'Space Grotesk',sans-serif}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.auth-msg{min-height:18px;color:var(--muted);font-size:12px;margin-top:10px}.hidden{display:none!important}.table-actions{display:flex;gap:5px}.auth-toggle{margin-top:12px;text-align:center;font-size:12px;color:var(--muted)}.auth-toggle button{background:none;border:0;color:var(--accent);cursor:pointer}.ai-card{background:var(--panel);border:1px solid var(--panel-border);border-radius:14px;padding:20px;margin-bottom:32px}.ai-row{display:flex;gap:8px}.ai-row input{flex:1;background:#0f151d;border:1px solid var(--panel-border);color:var(--text);padding:11px;border-radius:9px}.ai-note{font-size:12px;color:var(--muted);margin:8px 0 0}
+  .auth-card h2,.modal-card h2{margin:0 0 6px}.auth-card p,.modal-card p{color:var(--muted);font-size:13px}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;color:var(--muted)}.field input,.field select{width:100%;padding:9px 10px;border:1px solid var(--panel-border);border-radius:8px;background:#0f151d;color:var(--text);font:13px 'Space Grotesk',sans-serif}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.auth-msg{min-height:18px;color:var(--muted);font-size:12px;margin-top:10px}.hidden{display:none!important}.table-actions{display:flex;gap:5px}.auth-toggle{margin-top:12px;text-align:center;font-size:12px;color:var(--muted)}.auth-toggle button{background:none;border:0;color:var(--accent);cursor:pointer}
   @media(max-width:720px){.form-grid{grid-template-columns:1fr}.header-actions{width:100%;justify-content:flex-start}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
 
 <style>
-  /* Responsive dashboard + floating AI */
   html{scroll-behavior:smooth;}
   body{overflow-x:hidden;}
   .mobile-list{display:none;}
-  .ai-fab{position:fixed;right:24px;bottom:24px;width:58px;height:58px;border:0;border-radius:50%;background:#05070b;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:900;font-size:25px;}
-  .ai-fab:hover{transform:translateY(-2px);}
-  .ai-panel{position:fixed;right:24px;bottom:94px;width:min(390px,calc(100vw - 32px));height:min(560px,calc(100vh - 120px));background:var(--panel);border:1px solid var(--panel-border);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.5);z-index:901;display:none;overflow:hidden;}
-  .ai-panel.open{display:flex;flex-direction:column;}
-  .ai-head{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid var(--panel-border);background:#101620;}
-  .ai-head-title{font-weight:700;font-size:14px;}.ai-head-sub{font-size:10px;color:var(--muted);margin-top:2px;}
-  .ai-close{border:0;background:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
-  .ai-messages{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
-  .ai-msg{max-width:88%;padding:10px 12px;border-radius:12px;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;}
-  .ai-msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px;}
-  .ai-msg.bot{align-self:flex-start;background:#1a222e;color:var(--text);border-bottom-left-radius:4px;}
-  .ai-input-row{display:flex;gap:7px;padding:10px;border-top:1px solid var(--panel-border);}
-  .ai-input-row input{min-width:0;flex:1;background:#0f151d;border:1px solid var(--panel-border);color:var(--text);padding:10px 11px;border-radius:9px;outline:none;}
-  .ai-input-row button{flex:0 0 auto;}
-  .ai-hint{font-size:10px;color:var(--muted);padding:0 12px 9px;}
   .mobile-account-card,.mobile-payout-card{background:var(--panel);border:1px solid var(--panel-border);border-radius:14px;padding:15px;margin-bottom:12px;}
   .mobile-account-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px;}
   .mobile-account-title{font-weight:700;font-size:14px;}.mobile-account-sub{font-size:11px;color:var(--muted);margin-top:3px;}
@@ -173,8 +156,6 @@
     .table-card{display:none;}
     .mobile-list{display:block;}
     .section-title{font-size:16px;} .section-sub{font-size:12px;}
-    .ai-fab{right:14px;bottom:14px;width:54px;height:54px;}
-    .ai-panel{right:8px;bottom:76px;width:calc(100vw - 16px);height:min(600px,calc(100vh - 92px));border-radius:16px;}
     .form-grid{grid-template-columns:1fr;}
     .modal-card{padding:18px;max-height:94vh!important;}
   }
@@ -354,18 +335,6 @@
 
   <footer>Your data is stored in Supabase. Use the buttons above to add or edit accounts and payouts.</footer>
 
-</div>
-
-
-<button id="aiFab" class="ai-fab" aria-label="Open AI Assistant" title="AI Assistant">✦</button>
-<div id="aiPanel" class="ai-panel" aria-hidden="true">
-  <div class="ai-head">
-    <div><div class="ai-head-title">🤖 AI Assistant</div><div class="ai-head-sub">Prop-firm data + trading questions</div></div>
-    <button id="aiClose" class="ai-close" aria-label="Close">×</button>
-  </div>
-  <div id="aiMessages" class="ai-messages"><div class="ai-msg bot">Hi! Ask me about your dashboard, investment, losses, payouts, XAUUSD, or major forex pairs. Typos are okay — you don't need perfect English.</div></div>
-  <div class="ai-hint">For “current/as of now” market questions, I’ll use the latest market snapshot available to the dashboard.</div>
-  <div class="ai-input-row"><input id="aiQuestion" autocomplete="off" placeholder="Ask anything… e.g. XAUUSD bias now"><button class="btn primary" id="aiAskBtn">Send</button></div>
 </div>
 
 <script>
@@ -617,53 +586,6 @@ supabase.auth.onAuthStateChange((event,session)=>{
   else showAuth();
 })();
 
-function normalizeQuestion(q){
-  const fixes={
-    "investmnet":"investment","invesment":"investment","investmant":"investment","loose":"lose","loosing":"losing","losingg":"losing",
-    "currencies":"currencies","curency":"currency","curreny":"currency","anlyze":"analyze","analisis":"analysis","whta":"what","whats":"what is",
-    "explainn":"explain","pofit":"profit","payoutt":"payout","accout":"account","acount":"account","bais":"bias","biass":"bias"
-  };
-  return q.split(/\b/).map(part=>fixes[part.toLowerCase()]||part).join("");
-}
-async function getMarketSnapshot(question){
-  const q=question.toLowerCase();
-  const symbols=[];
-  if(/xauusd|gold/.test(q)) symbols.push("XAUUSD=X");
-  if(/eurusd/.test(q)) symbols.push("EURUSD=X");
-  if(/gbpusd/.test(q)) symbols.push("GBPUSD=X");
-  if(/usdjpy/.test(q)) symbols.push("USDJPY=X");
-  if(/audusd/.test(q)) symbols.push("AUDUSD=X");
-  if(/usdcad/.test(q)) symbols.push("USDCAD=X");
-  if(/usdchf/.test(q)) symbols.push("USDCHF=X");
-  if(/nzdusd/.test(q)) symbols.push("NZDUSD=X");
-  if(!symbols.length) return "";
-  const rows=[];
-  for(const symbol of symbols){
-    try{
-      const r=await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=5m`);
-      const j=await r.json(); const res=j.chart?.result?.[0]; const c=res?.indicators?.quote?.[0]?.close?.filter(Number.isFinite)||[];
-      if(c.length>=8){ const last=c[c.length-1], prev=c[c.length-2], first=c[0]; const ch=(last-first)/first*100; const recent=c.slice(-12); const avg=recent.reduce((a,b)=>a+b,0)/recent.length; const short=c.slice(-5).reduce((a,b)=>a+b,0)/5; const trend=short>avg*1.0003?"bullish":short<avg*0.9997?"bearish":"neutral"; rows.push(`${symbol.replace("=X","")}: price ${last.toFixed(5)}, day change ${ch.toFixed(2)}%, intraday trend ${trend}`); }
-    }catch(e){}
-  }
-  return rows.length?`\n\nLIVE MARKET SNAPSHOT (latest available):\n${rows.join("\n")}`:"";
-}
-async function askAI(){
-  const input=$("aiQuestion"), q=input.value.trim(); if(!q)return;
-  const messages=$("aiMessages"); const clean=normalizeQuestion(q);
-  messages.insertAdjacentHTML("beforeend",`<div class="ai-msg user"></div>`); messages.lastElementChild.textContent=q;
-  const thinking=document.createElement("div"); thinking.className="ai-msg bot"; thinking.textContent="Thinking…"; messages.appendChild(thinking); messages.scrollTop=messages.scrollHeight; input.value="";
-  try{
-    const market=await getMarketSnapshot(clean);
-    const prompt=`Understand the user's question even if it contains spelling mistakes, grammar mistakes, or Hinglish. Never reject a question just because English is imperfect. Answer concisely and clearly. If the question is about the user's prop-firm dashboard, use the private data provided by the server. If it asks for current market bias, use the live market snapshot below when present and clearly say it is a snapshot, not a guarantee. User question: ${clean}${market}`;
-    const {data,error}=await supabase.functions.invoke("ai-assistant",{body:{question:prompt}});
-    if(error) throw error;
-    thinking.textContent=data?.answer||"No answer received.";
-  }catch(e){ console.error(e); thinking.textContent="AI error: "+(e.message||"Could not get an answer."); }
-  messages.scrollTop=messages.scrollHeight;
-}
-$("aiAskBtn").onclick=askAI; $("aiQuestion").addEventListener("keydown",e=>{if(e.key==="Enter")askAI()});
-$("aiFab").onclick=()=>{$("aiPanel").classList.add("open");$("aiPanel").setAttribute("aria-hidden","false");setTimeout(()=>$("aiQuestion").focus(),50)};
-$("aiClose").onclick=()=>{$("aiPanel").classList.remove("open");$("aiPanel").setAttribute("aria-hidden","true")};
 }
 </script>
 </body>
