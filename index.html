@@ -192,23 +192,50 @@
 </style>
 
 <style>
-  /* Edit Account: keep purchase/account details editable, hide bundle setup controls. */
+  /* Add Account vs Edit Account fields */
+  .edit-only-field,
+  .edit-step2-field,
+  .edit-master-field { display:none!important; }
+
   body.editing-account #bundleCountWrap,
   body.editing-account #bundleStep1Fields { display:none!important; }
-  body.editing-account #singleStep1Fields { display:grid!important; }
+
+  body.editing-account .edit-only-field { display:flex!important; }
 </style>
 </head>
 <body>
 <div id="authOverlay" class="auth-overlay"><div class="auth-card"><h2 id="authTitle">Sign in to your dashboard</h2><p>Your prop-firm data is stored privately in Supabase.</p><input type="hidden" id="authMode" value="signin"><div class="field"><label>Email</label><input id="authEmail" type="email" placeholder="you@example.com"></div><div class="field" style="margin-top:12px"><label>Password</label><input id="authPassword" type="password" placeholder="At least 6 characters"></div><button class="btn primary" id="authButton" style="width:100%;margin-top:16px">Sign in</button><div class="auth-msg" id="authMsg"></div><div class="auth-toggle" id="authToggle">New here? <button type="button" onclick="toggleAuth()">Create account</button></div></div></div>
 <div id="modalOverlay" class="modal-overlay hidden"><div class="modal-card" style="max-height:90vh;overflow:auto"><h2 id="modalTitle">Add Account</h2><p>Save the information below to your private database.</p><div id="accountForm"><div class="form-grid">
-<div class="field"><label>Purchase date</label><input id="a_purchase_date" type="date"></div><div class="field edit-hide"><label>Bundle</label><select id="a_bundle"><option>No</option><option>Yes</option></select></div><div class="field"><label>Price ($)</label><input id="a_price" type="number" step="0.01"></div><div class="field"><label>Firm</label><input id="a_firm"></div>
-<div class="field bundle-count-field hidden edit-hide" id="bundleCountWrap"><label>How many accounts in bundle?</label><select id="a_bundle_count"><option value="2">2 Accounts</option><option value="3" selected>3 Accounts</option><option value="5">5 Accounts</option></select></div><div class="field"><label>Funding Size ($)</label><input id="a_funding_size" type="number" step="1" placeholder="e.g. 5000"></div><div id="singleStep1Fields">
-<div class="field"><label>Step 1 ID</label><input id="a_step1_id"></div><div class="field"><label>Step 1 Status</label><select id="a_step1_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>
+<div class="field"><label>Purchase date</label><input id="a_purchase_date" type="date"></div>
+<div class="field"><label>Price ($)</label><input id="a_price" type="number" step="0.01"></div>
+<div class="field"><label>Firm</label><input id="a_firm"></div>
+<div class="field"><label>Funding Size ($)</label><input id="a_funding_size" type="number" step="1" placeholder="e.g. 5000"></div>
+<div class="field"><label>Bundle Buy</label><select id="a_bundle"><option>No</option><option>Yes</option></select></div>
+<div class="field bundle-count-field hidden" id="bundleCountWrap"><label>How many accounts in bundle?</label><select id="a_bundle_count"><option value="2">2 Accounts</option><option value="3" selected>3 Accounts</option><option value="5">5 Accounts</option></select></div>
+<div id="singleStep1Fields" style="grid-column:1/-1">
+  <div class="form-grid">
+    <div class="field"><label>Step 1 Account ID</label><input id="a_step1_id" placeholder="Enter Step 1 ID"></div>
+    <div class="field"><label>Step 1 Status</label><select id="a_step1_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>
+  </div>
 </div>
-<div id="bundleStep1Fields" class="hidden edit-hide" style="grid-column:1/-1">
-  <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600">Bundle account IDs &amp; Step 1 status</div>
+<div id="bundleStep1Fields" class="hidden" style="grid-column:1/-1">
+  <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600">Bundle Account IDs &amp; Step 1 Status</div>
   <div id="bundleAccountsFields" style="display:grid;gap:10px"></div>
-</div><div class="field"><label>Step 1 Reset Fee</label><input id="a_step1_reset_fee" type="number" step="0.01"></div><div class="field"><label>Step 1 Reset ID</label><input id="a_step1_reset_id"></div><div class="field"><label>Step 1 Reset Status</label><select id="a_step1_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field edit-step2-field"><label>Step 2 ID</label><input id="a_step2_id"></div><div class="field edit-step2-field"><label>Step 2 Status</label><select id="a_step2_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field edit-step2-field"><label>Step 2 Reset Fee</label><input id="a_step2_reset_fee" type="number" step="0.01"></div><div class="field edit-step2-field"><label>Step 2 Reset ID</label><input id="a_step2_reset_id"></div><div class="field edit-step2-field"><label>Step 2 Reset Status</label><select id="a_step2_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div><div class="field edit-master-field"><label>Master ID</label><input id="a_master_id"></div><div class="field edit-master-field"><label>Master Status</label><select id="a_master_status"><option value="dash">—</option><option value="active">Active</option><option value="fail">Fail</option></select></div><div class="field edit-master-field"><label>Profit ($)</label><input id="a_profit" type="number" step="0.01"></div></div><div class="modal-actions"><button class="btn" id="cancelModal">Cancel</button><button class="btn primary" id="saveAccountBtn">Save Account</button></div></div>
+</div>
+
+<!-- Edit-only fields: hidden while adding a new account -->
+<div class="field edit-only-field"><label>Step 1 Reset Fee</label><input id="a_step1_reset_fee" type="number" step="0.01"></div>
+<div class="field edit-only-field"><label>Step 1 Reset ID</label><input id="a_step1_reset_id"></div>
+<div class="field edit-only-field"><label>Step 1 Reset Status</label><select id="a_step1_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>
+<div class="field edit-step2-field"><label>Step 2 ID</label><input id="a_step2_id"></div>
+<div class="field edit-step2-field"><label>Step 2 Status</label><select id="a_step2_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>
+<div class="field edit-step2-field"><label>Step 2 Reset Fee</label><input id="a_step2_reset_fee" type="number" step="0.01"></div>
+<div class="field edit-step2-field"><label>Step 2 Reset ID</label><input id="a_step2_reset_id"></div>
+<div class="field edit-step2-field"><label>Step 2 Reset Status</label><select id="a_step2_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>
+<div class="field edit-master-field"><label>Master ID</label><input id="a_master_id"></div>
+<div class="field edit-master-field"><label>Master Status</label><select id="a_master_status"><option value="dash">—</option><option value="active">Active</option><option value="fail">Fail</option></select></div>
+<div class="field edit-master-field"><label>Total Profit ($)</label><input id="a_profit" type="number" step="0.01"></div>
+</div><div class="modal-actions"><button class="btn" id="cancelModal">Cancel</button><button class="btn primary" id="saveAccountBtn">Save Account</button></div></div>
 <div id="payoutForm" class="hidden"><div class="form-grid"><div class="field"><label>Master ID</label><input id="p_master_id" placeholder="Enter master account ID"></div><div class="field"><label>Payout 1 ($)</label><input id="p_payout_1" type="number" step="0.01"></div><div class="field"><label>Payout 1 Date</label><input id="p_payout_1_date" type="date"></div><div class="field"><label>Payout 2 ($)</label><input id="p_payout_2" type="number" step="0.01"></div><div class="field"><label>Payout 2 Date</label><input id="p_payout_2_date" type="date"></div><div class="field"><label>Payout 3 ($)</label><input id="p_payout_3" type="number" step="0.01"></div><div class="field"><label>Payout 3 Date</label><input id="p_payout_3_date" type="date"></div><div class="field"><label>Status</label><select id="p_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" id="savePayoutBtn">Save Payout</button></div></div></div></div>
 <div class="wrap hidden" id="appWrap">
 
@@ -478,17 +505,18 @@ async function loadData(){
   }finally{loadingData=false;}
 }
 function updateEditJourneyFields(){
+  if(!editingAccountId){
+    document.querySelectorAll(".edit-step2-field,.edit-master-field")
+      .forEach(el=>el.classList.add("hidden"));
+    return;
+  }
+
   const s1=val("a_step1_status");
   const r1=val("a_step1_reset_status");
   const s2=val("a_step2_status");
   const r2=val("a_step2_reset_status");
 
-  // Step 2 becomes available if either the original Step 1
-  // OR its reset account has passed.
   const step2Ready = s1==="pass" || r1==="pass";
-
-  // Master becomes available if either the original Step 2
-  // OR its reset account has passed.
   const masterReady = s2==="pass" || r2==="pass";
 
   document.querySelectorAll(".edit-step2-field")
@@ -499,14 +527,16 @@ function updateEditJourneyFields(){
 }
 function updateBundleFields(){
   // Bundle setup is only editable when creating a new account.
-  // In Edit mode, keep only this account's Step 1 fields visible.
   const isEditing=!!editingAccountId;
   if(isEditing){
     $("bundleCountWrap").classList.add("hidden");
     $("bundleStep1Fields").classList.add("hidden");
     $("singleStep1Fields").classList.remove("hidden");
+    document.querySelectorAll(".edit-only-field").forEach(el=>el.style.display="flex");
     return;
   }
+  document.querySelectorAll(".edit-only-field,.edit-step2-field,.edit-master-field")
+    .forEach(el=>el.style.display="none");
   const isBundle=val("a_bundle")==="Yes";
   $("bundleCountWrap").classList.toggle("hidden",!isBundle);
   $("singleStep1Fields").classList.toggle("hidden",isBundle);
@@ -584,17 +614,17 @@ async function saveAccount(){
     bundle:val("a_bundle")||"No",
     firm:val("a_firm")||null,
     funding_size:val("a_funding_size")===""?null:Number(val("a_funding_size")),
-    step1_reset_fee:Number(val("a_step1_reset_fee")||0),
-    step1_reset_id:nullableText(val("a_step1_reset_id")),
-    step1_reset_status:val("a_step1_reset_status")||"dash",
-    step2_id:nullableText(val("a_step2_id")),
-    step2_status:val("a_step2_status")||"dash",
-    step2_reset_fee:Number(val("a_step2_reset_fee")||0),
-    step2_reset_id:nullableText(val("a_step2_reset_id")),
-    step2_reset_status:val("a_step2_reset_status")||"dash",
-    master_id:nullableText(val("a_master_id")),
-    master_status:val("a_master_status")||"dash",
-    profit:Number(val("a_profit")||0)
+    step1_reset_fee:editingAccountId?Number(val("a_step1_reset_fee")||0):0,
+    step1_reset_id:editingAccountId?nullableText(val("a_step1_reset_id")):null,
+    step1_reset_status:editingAccountId?(val("a_step1_reset_status")||"dash"):"dash",
+    step2_id:editingAccountId?nullableText(val("a_step2_id")):null,
+    step2_status:editingAccountId?(val("a_step2_status")||"dash"):"dash",
+    step2_reset_fee:editingAccountId?Number(val("a_step2_reset_fee")||0):0,
+    step2_reset_id:editingAccountId?nullableText(val("a_step2_reset_id")):null,
+    step2_reset_status:editingAccountId?(val("a_step2_reset_status")||"dash"):"dash",
+    master_id:editingAccountId?nullableText(val("a_master_id")):null,
+    master_status:editingAccountId?(val("a_master_status")||"dash"):"dash",
+    profit:editingAccountId?Number(val("a_profit")||0):0
   };
 
   if(editingAccountId){
