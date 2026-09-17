@@ -16,26 +16,11 @@
     --gain: #35c48f;
     --neutral: #d7a63c;
     --accent: #4d8cff;
-    --bg-glow:#131a24;
-  }
-  :root{ color-scheme:dark; }
-  [data-theme="light"]{
-    --bg:#f5f7fa;
-    --panel:#ffffff;
-    --panel-border:#d9dee7;
-    --text:#17202b;
-    --muted:#667085;
-    --loss:#c83d38;
-    --gain:#15966a;
-    --neutral:#a87408;
-    --accent:#3d73d8;
-    --bg-glow:#e8edf5;
-    color-scheme:light;
   }
   *{ box-sizing:border-box; }
   body{
     margin:0;
-    background: radial-gradient(circle at 15% 0%, var(--bg-glow, #131a24) 0%, var(--bg) 55%);
+    background: radial-gradient(circle at 15% 0%, #131a24 0%, var(--bg) 55%);
     color:var(--text);
     font-family:'Space Grotesk', sans-serif;
     padding:48px 24px 80px;
@@ -175,21 +160,6 @@
     .modal-card{padding:18px;max-height:94vh!important;}
   }
 </style>
-
-<style>
-  [data-theme="light"] .btn{background:#f0f3f7;color:var(--text);}
-  [data-theme="light"] .btn:hover{background:#e5e9ef;}
-  [data-theme="light"] .btn.primary{background:var(--accent);color:#fff;}
-  [data-theme="light"] .bar,[data-theme="light"] .track{background:#e3e7ed;}
-  [data-theme="light"] .bundle-account-row{background:#f7f9fb;}
-  [data-theme="light"] tbody td{border-bottom-color:#e3e7ed;}
-  [data-theme="light"] tbody tr:hover{background:#f4f6f8;}
-  [data-theme="light"] .totals-row td{background:#eef1f5;}
-  [data-theme="light"] .mobile-kv div{background:#f3f5f8;}
-  [data-theme="light"] .field input,[data-theme="light"] .field select,[data-theme="light"] .ai-row input{background:#fff;color:var(--text);}
-  [data-theme="light"] .auth-overlay,[data-theme="light"] .modal-overlay{background:rgba(20,27,36,.45);}
-  [data-theme="light"] .auth-card,[data-theme="light"] .modal-card{box-shadow:0 20px 60px rgba(20,27,36,.18);}
-</style>
 </head>
 <body>
 <div id="authOverlay" class="auth-overlay hidden"><div class="auth-card"><h2 id="authTitle">Sign in to your dashboard</h2><p>Your prop-firm data is stored privately in Supabase.</p><input type="hidden" id="authMode" value="signin"><div class="field"><label>Email</label><input id="authEmail" type="email" placeholder="you@example.com"></div><div class="field" style="margin-top:12px"><label>Password</label><input id="authPassword" type="password" placeholder="At least 6 characters"></div><button class="btn primary" id="authButton" style="width:100%;margin-top:16px">Sign in</button><div class="auth-msg" id="authMsg"></div><div class="auth-toggle" id="authToggle">New here? <button type="button" onclick="toggleAuth()">Create account</button></div></div></div>
@@ -214,8 +184,8 @@
       <div class="stamp" id="accountCount">— accounts tracked</div>
       <button class="btn primary" id="addAccountBtn">+ Add Account</button>
       <button class="btn" id="addPayoutBtn">+ Add Payout</button>
-      <button class="btn" id="themeBtn" type="button">☀ Light Mode</button>
-       <button class="btn" id="signOutBtn">Sign out</button>
+      <button class="btn" id="refreshBtn">Refresh</button>
+      <button class="btn" id="signOutBtn">Sign out</button>
     </div>
   </header>
 
@@ -604,7 +574,7 @@ window.editAccount=id=>{const r=ACCOUNTS.find(x=>x.id===id);if(r)openModal("acco
 function showAuth(){$("authOverlay").classList.remove("hidden");$("appWrap").classList.add("hidden")}function showApp(){$("authOverlay").classList.add("hidden");$("appWrap").classList.remove("hidden");loadData()}
 async function handleAuth(){const email=val("authEmail"),password=$("authPassword").value;$("authMsg").textContent="Working...";if(!email||!password){$("authMsg").textContent="Enter email and password.";return}const mode=$("authMode").value;const result=mode==="signup"?await supabase.auth.signUp({email,password}):await supabase.auth.signInWithPassword({email,password});if(result.error){$("authMsg").textContent=result.error.message;return}if(mode==="signup"&&!result.data.session){$("authMsg").textContent="Account created. Check your email if confirmation is required, then sign in.";return}$("authMsg").textContent="";showApp()}
 function toggleAuth(){const signup=$("authMode").value!=="signup";$("authMode").value=signup?"signup":"signin";$("authTitle").textContent=signup?"Create your account":"Sign in to your dashboard";$("authButton").textContent=signup?"Create account":"Sign in";$("authToggle").innerHTML=signup?'Already have an account? <button type="button" onclick="toggleAuth()">Sign in</button>':'New here? <button type="button" onclick="toggleAuth()">Create account</button>'}window.toggleAuth=toggleAuth;
-$("a_bundle").onchange=updateBundleFields;$("a_bundle_count").onchange=()=>renderBundleAccountFields(Number(val("a_bundle_count")||3));$("a_step1_status").onchange=updateEditJourneyFields;$("a_step1_reset_status").onchange=updateEditJourneyFields;$("a_step2_status").onchange=updateEditJourneyFields;$("a_step2_reset_status").onchange=updateEditJourneyFields;$("addAccountBtn").onclick=()=>openModal("account");$("addPayoutBtn").onclick=()=>openModal("payout");$("themeBtn").onclick=toggleTheme;$("signOutBtn").onclick=async()=>{await supabase.auth.signOut();showAuth()};$("cancelModal").onclick=closeModal;$("saveAccountBtn").onclick=saveAccount;$("savePayoutBtn").onclick=savePayout;$("authButton").onclick=handleAuth;
+$("a_bundle").onchange=updateBundleFields;$("a_bundle_count").onchange=()=>renderBundleAccountFields(Number(val("a_bundle_count")||3));$("a_step1_status").onchange=updateEditJourneyFields;$("a_step1_reset_status").onchange=updateEditJourneyFields;$("a_step2_status").onchange=updateEditJourneyFields;$("a_step2_reset_status").onchange=updateEditJourneyFields;$("addAccountBtn").onclick=()=>openModal("account");$("addPayoutBtn").onclick=()=>openModal("payout");$("refreshBtn").onclick=loadData;$("signOutBtn").onclick=async()=>{await supabase.auth.signOut();showAuth()};$("cancelModal").onclick=closeModal;$("saveAccountBtn").onclick=saveAccount;$("savePayoutBtn").onclick=savePayout;$("authButton").onclick=handleAuth;
 supabase.auth.onAuthStateChange((event,session)=>{
   if(session) showApp();
   else showAuth();
