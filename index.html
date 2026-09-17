@@ -96,19 +96,6 @@
 
   .performance-detail{font-size:11px;color:var(--muted);margin-top:7px;}
   .monthly-card{background:var(--panel);border:1px solid var(--panel-border);border-radius:14px;overflow:hidden;margin-bottom:32px;}
-  .section-filter{display:flex;gap:8px;align-items:center;margin:0 0 14px;flex-wrap:wrap;}
-  .account-filter-bar{gap:12px;}
-  .filter-label{font-size:12px;color:var(--muted);font-weight:600;}
-  .filter-link{border:0;background:none;color:var(--muted);padding:2px 0;cursor:pointer;font:600 12px 'Space Grotesk',sans-serif;text-decoration:none;}
-  .filter-link:hover{text-decoration:underline;color:var(--text);}
-  .filter-link.active{color:var(--accent);text-decoration:underline;}
-  .account-filter-bar input{margin-left:auto;}
-  @media(max-width:720px){.account-filter-bar{display:flex;gap:10px;}.account-filter-bar input{margin-left:0;width:100%;order:20;}}
-
-  .section-filter select,.section-filter input{padding:8px 10px;border:1px solid var(--panel-border);border-radius:8px;background:#0f151d;color:var(--text);font:12px 'Space Grotesk',sans-serif;}
-  .section-filter input{min-width:220px;}
-  [data-theme="light"] .section-filter select,[data-theme="light"] .section-filter input{background:#fff;color:var(--text);}
-  @media(max-width:720px){.section-filter{display:grid;grid-template-columns:1fr}.section-filter input{min-width:0;width:100%;}}
   .monthly-scroll{overflow-x:auto;}
   .monthly-table{width:100%;border-collapse:collapse;min-width:650px;}
   .monthly-table th,.monthly-table td{padding:12px 14px;text-align:right;border-bottom:1px solid var(--panel-border);font-size:12px;white-space:nowrap;}
@@ -370,10 +357,6 @@
     <p class="section-title">Monthly Investment &amp; Payout</p>
     <p class="section-sub">Monthly view of purchases, reset fees, payouts, and net cash flow.</p>
   </div>
-  <div class="section-filter">
-    <select id="monthlyYearFilter"><option value="all">All Years</option></select>
-    <select id="monthlyMonthFilter"><option value="all">All Months</option></select>
-  </div>
   <div class="monthly-card">
     <div class="monthly-scroll">
       <table class="monthly-table">
@@ -395,18 +378,6 @@
   <div>
     <p class="section-title">Funded accounts list</p>
     <p class="section-sub">Step 1 → Step 2 → Master (live funded). A failed account stays in the history, while each reset ID is counted as a separate account because it has a different ID.</p>
-  </div>
-  <div class="section-filter account-filter-bar">
-    <span class="filter-label">Filter:</span>
-    <button type="button" class="filter-link active" data-account-filter="all">All</button>
-    <button type="button" class="filter-link" data-account-filter="bundle">Bundle</button>
-    <button type="button" class="filter-link" data-account-filter="firm">Firm</button>
-    <button type="button" class="filter-link" data-account-filter="step1">Step 1</button>
-    <button type="button" class="filter-link" data-account-filter="step2">Step 2</button>
-    <button type="button" class="filter-link" data-account-filter="reset">Reset Step 1 &amp; 2</button>
-    <button type="button" class="filter-link" data-account-filter="master">Master Account</button>
-    <input id="accountSearchFilter" type="search" placeholder="Search ID">
-    <select id="accountFirmFilter" class="hidden"><option value="all">All Firms</option></select>
   </div>
   <div class="table-card">
     <div class="table-scroll">
@@ -552,39 +523,11 @@ function renderMonthlyStats(){
   </tr>`);
 }
 
-function accountMatchesFilter(a){
-  const search=($("accountSearchFilter")?.value||"").trim().toLowerCase();
-  const filter=document.querySelector(".filter-link.active")?.dataset.accountFilter||"all";
-
-  if(search){
-    const text=[a.step1_id,a.step2_id,a.master_id,a.step1_reset_id,a.step2_reset_id].filter(Boolean).join(" ").toLowerCase();
-    if(!text.includes(search))return false;
-  }
-
-  if(filter==="bundle" && String(a.bundle).toLowerCase()!=="yes")return false;
-  if(filter==="firm"){
-    const firm=$("accountFirmFilter")?.value||"all";
-    return firm==="all" || String(a.firm||"")===firm;
-  }
-  if(filter==="step1" && !["active","pass","fail"].includes(String(a.step1_status||"dash").toLowerCase()))return false;
-  if(filter==="step2" && !["active","pass","fail"].includes(String(a.step2_status||"dash").toLowerCase()))return false;
-  if(filter==="reset"){
-    const r1=String(a.step1_reset_status||"dash").toLowerCase();
-    const r2=String(a.step2_reset_status||"dash").toLowerCase();
-    if(!(a.step1_reset_id || r1!=="dash" || a.step2_reset_id || r2!=="dash"))return false;
-  }
-  if(filter==="master" && String(a.master_status||"dash").toLowerCase()!=="active")return false;
-
-  return true;
-}
-
 function render(){
  const body=$("accountsBody"); body.innerHTML=""; let totalPrice=0,totalReset=0,totalProfit=0,s1Active=0,s1Pass=0,s1Fail=0,s2Active=0,s2Pass=0,s2Fail=0,masterActive=0,resetAccountCount=0;
- const groups=[]; for(let i=0;i<filteredAccounts.length;i++){const a=filteredAccounts[i],isBundle=String(a.bundle).toLowerCase()==="yes",key=isBundle?`${a.purchase_date}|${a.bundle}|${a.firm}`:`single-${i}`; if(i===0||key!==groups[groups.length-1].key)groups.push({key,start:i,end:i});else groups[groups.length-1].end=i;}
+ const groups=[]; for(let i=0;i<ACCOUNTS.length;i++){const a=ACCOUNTS[i],isBundle=String(a.bundle).toLowerCase()==="yes",key=isBundle?`${a.purchase_date}|${a.bundle}|${a.firm}`:`single-${i}`; if(i===0||key!==groups[groups.length-1].key)groups.push({key,start:i,end:i});else groups[groups.length-1].end=i;}
  const groupByRow=new Map();groups.forEach(g=>{for(let i=g.start;i<=g.end;i++)groupByRow.set(i,g)});
- const filteredAccounts=ACCOUNTS.filter(accountMatchesFilter);
-
- filteredAccounts.forEach((a,i)=>{
+ ACCOUNTS.forEach((a,i)=>{
    // Funding Size is informational only. It must NEVER enter investment/P&L.
    const funding=Number(a.funding_size)||0;
    const price=Number(a.price)||0;
@@ -640,7 +583,7 @@ function render(){
  $("perfAvgInvestment").textContent=trackedAccounts?money(avgInvestment):"$0.00";
  $("perfAvgInvestmentDetail").textContent=`${money(totalInvest)} total investment ÷ ${trackedAccounts} tracked`;
  const mobileBody=$("mobileAccountsList");
- mobileBody.innerHTML=filteredAccounts.map((a,i)=>`<div class="mobile-account-card">
+ mobileBody.innerHTML=ACCOUNTS.map((a,i)=>`<div class="mobile-account-card">
    <div class="mobile-account-top"><div><div class="mobile-account-title">Account ${i+1} · ${a.firm||"—"}</div><div class="mobile-account-sub">${displayDate(a.purchase_date)} · ${a.bundle==="Yes"?"Bundle":"Single"} · ${money(a.price)} · Funding ${a.funding_size!=null && a.funding_size!=="" ? "$"+Number(a.funding_size).toLocaleString("en-US",{maximumFractionDigits:0}) : "—"}</div></div><div>${statusPill(a.master_status||a.step2_status||a.step1_status||"dash")}</div></div>
    <div class="mobile-section"><div class="mobile-section-title">Step 1</div><div class="mobile-kv"><div><span>Account ID</span><b>${a.step1_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step1_status||"dash")}</b></div></div></div>
    <div class="mobile-section"><div class="mobile-section-title">Step 1 Reset</div><div class="mobile-kv"><div><span>Fee</span><b>${money(a.step1_reset_fee||0)}</b></div><div><span>New ID</span><b>${a.step1_reset_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step1_reset_status||"dash")}</b></div></div></div>
@@ -851,27 +794,6 @@ function toggleTheme(){
 }
 applyTheme();
 function toggleAuth(){const signup=$("authMode").value!=="signup";$("authMode").value=signup?"signup":"signin";$("authTitle").textContent=signup?"Create your account":"Sign in to your dashboard";$("authButton").textContent=signup?"Create account":"Sign in";$("authToggle").innerHTML=signup?'Already have an account? <button type="button" onclick="toggleAuth()">Sign in</button>':'New here? <button type="button" onclick="toggleAuth()">Create account</button>'}window.toggleAuth=toggleAuth;
-$("monthlyMonthFilter").onchange=renderMonthlyStats;
-$("monthlyYearFilter").onchange=renderMonthlyStats;
-document.querySelectorAll("[data-account-filter]").forEach(btn=>btn.onclick=()=>{
-  document.querySelectorAll("[data-account-filter]").forEach(x=>x.classList.remove("active"));
-  btn.classList.add("active");
-  const firm=$("accountFirmFilter");
-  if(btn.dataset.accountFilter==="firm"){
-    const firms=Array.from(new Set(ACCOUNTS.map(a=>a.firm).filter(Boolean))).sort();
-    firm.innerHTML='<option value="all">All Firms</option>'+firms.map(f=>`<option value="${f.replace(/"/g,"&quot;")}">${f}</option>`).join("");
-    firm.classList.remove("hidden");
-  }else{
-    firm.classList.add("hidden");
-    firm.value="all";
-  }
-  render();
-});
-
-$("accountSearchFilter").oninput=render;
-$("accountFirmFilter").onchange=render;
-$("accountStatusFilter").onchange=render;
-$("accountBundleFilter").onchange=render;
 $("a_bundle").onchange=updateBundleFields;$("a_bundle_count").onchange=()=>renderBundleAccountFields(Number(val("a_bundle_count")||3));$("a_step1_status").onchange=updateEditJourneyFields;$("a_step1_reset_status").onchange=updateEditJourneyFields;$("a_step2_status").onchange=updateEditJourneyFields;$("a_step2_reset_status").onchange=updateEditJourneyFields;$("addAccountBtn").onclick=()=>openModal("account");$("addPayoutBtn").onclick=()=>openModal("payout");$("themeBtn").onclick=toggleTheme;$("signOutBtn").onclick=async()=>{await supabase.auth.signOut();showAuth()};$("cancelModal").onclick=closeModal;$("saveAccountBtn").onclick=saveAccount;$("savePayoutBtn").onclick=savePayout;$("authButton").onclick=handleAuth;
 supabase.auth.onAuthStateChange((event,session)=>{
   if(event==="SIGNED_IN") showApp();
