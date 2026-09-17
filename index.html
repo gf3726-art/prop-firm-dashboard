@@ -95,6 +95,16 @@
   @media(max-width:720px){.bundle-account-row{grid-template-columns:1fr;}}
 
   .performance-detail{font-size:11px;color:var(--muted);margin-top:7px;}
+  .monthly-card{background:var(--panel);border:1px solid var(--panel-border);border-radius:14px;overflow:hidden;margin-bottom:32px;}
+  .monthly-scroll{overflow-x:auto;}
+  .monthly-table{width:100%;border-collapse:collapse;min-width:650px;}
+  .monthly-table th,.monthly-table td{padding:12px 14px;text-align:right;border-bottom:1px solid var(--panel-border);font-size:12px;white-space:nowrap;}
+  .monthly-table th:first-child,.monthly-table td:first-child{text-align:left;}
+  .monthly-table th{font-size:11px;color:var(--muted);font-weight:600;}
+  .monthly-table tr:last-child td{border-bottom:none;}
+  .monthly-total td{font-weight:700;background:#171f2a;border-top:1px solid var(--panel-border);}
+  [data-theme="light"] .monthly-total td{background:#eef1f5;}
+
   @media(max-width:720px){.performance-grid{grid-template-columns:1fr;gap:10px;margin-bottom:22px;}}
 
   .table-card{ background:var(--panel); border:1px solid var(--panel-border); border-radius:14px; overflow:hidden; margin-bottom:32px; }
@@ -343,6 +353,27 @@
     </div>
   </section>
 
+  <div>
+    <p class="section-title">Monthly Investment &amp; Payout</p>
+    <p class="section-sub">Monthly view of purchases, reset fees, payouts, and net cash flow.</p>
+  </div>
+  <div class="monthly-card">
+    <div class="monthly-scroll">
+      <table class="monthly-table">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Investment</th>
+            <th>Reset Fees</th>
+            <th>Total Outflow</th>
+            <th>Payout</th>
+            <th>Net</th>
+          </tr>
+        </thead>
+        <tbody id="monthlyStatsBody"></tbody>
+      </table>
+    </div>
+  </div>
 
   <div>
     <p class="section-title">Funded accounts list</p>
@@ -415,6 +446,83 @@ function money(n){ return n === null || n === undefined || n === "" ? "—" : "$
 function statusPill(s){ const map={fail:["Fail","fail"],pass:["Pass","pass"],active:["Active","active"],dash:["—","dash"]}; const [label,cls]=map[s]||["—","dash"]; return `<span class="pill ${cls}">${label}</span>`; }
 function displayDate(v){ if(!v)return "—"; const d=new Date(v+"T00:00:00"); return isNaN(d)?v:d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}); }
 function nullableText(v){ return v && v !== "—" ? v : null; }
+function monthKey(v){
+  if(!v)return null;
+  const m=String(v).match(/^(\d{4})-(\d{2})/);
+  return m?m[1]+"-"+m[2]:null;
+}
+function monthLabel(key){
+  const [y,m]=key.split("-");
+  return new Date(Number(y),Number(m)-1,1).toLocaleDateString("en-US",{month:"short",year:"numeric"});
+}
+function renderMonthlyStats(){
+  const months=new Map();
+  const ensure=key=>{
+    if(!key)return null;
+    if(!months.has(key))months.set(key,{investment:0,reset:0,payout:0});
+    return months.get(key);
+  };
+
+  ACCOUNTS.forEach(a=>{
+    const row=ensure(monthKey(a.purchase_date));
+    if(!row)return;
+    const funding=Number(a.funding_size)||0;
+    const price=Number(a.price)||0;
+    const reset1=Number(a.step1_reset_fee)||0;
+    const reset2=Number(a.step2_reset_fee)||0;
+    if(price>0 && !(funding>0 && price===funding))row.investment+=price;
+    if(reset1>0 && !(funding>0 && reset1===funding))row.reset+=reset1;
+    if(reset2>0 && !(funding>0 && reset2===funding))row.reset+=reset2;
+  });
+
+  PAYOUTS.forEach(p=>{
+    [[p.payout_1,p.payout_1_date],[p.payout_2,p.payout_2_date],[p.payout_3,p.payout_3_date]]
+      .forEach(([amount,date])=>{
+        const value=Number(amount)||0;
+        const row=ensure(monthKey(date));
+        if(row && value>0)row.payout+=value;
+      });
+  });
+
+  const body=$("monthlyStatsBody");
+  if(!body)return;
+  const keys=Array.from(months.keys()).sort();
+
+  if(!keys.length){
+    body.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);">No monthly data yet.</td></tr>';
+    return;
+  }
+
+  let investmentTotal=0,resetTotal=0,payoutTotal=0;
+  body.innerHTML=keys.map(key=>{
+    const r=months.get(key);
+    const outflow=r.investment+r.reset;
+    const net=r.payout-outflow;
+    investmentTotal+=r.investment;
+    resetTotal+=r.reset;
+    payoutTotal+=r.payout;
+    return `<tr>
+      <td>${monthLabel(key)}</td>
+      <td class="mono">${money(r.investment)}</td>
+      <td class="mono">${money(r.reset)}</td>
+      <td class="mono">${money(outflow)}</td>
+      <td class="mono gain">${money(r.payout)}</td>
+      <td class="mono ${net<0?"loss":"gain"}">${net<0?"−":""}${money(Math.abs(net))}</td>
+    </tr>`;
+  }).join("");
+
+  const outflowTotal=investmentTotal+resetTotal;
+  const netTotal=payoutTotal-outflowTotal;
+  body.insertAdjacentHTML("beforeend",`<tr class="monthly-total">
+    <td>Total</td>
+    <td class="mono">${money(investmentTotal)}</td>
+    <td class="mono">${money(resetTotal)}</td>
+    <td class="mono">${money(outflowTotal)}</td>
+    <td class="mono gain">${money(payoutTotal)}</td>
+    <td class="mono ${netTotal<0?"loss":"gain"}">${netTotal<0?"−":""}${money(Math.abs(netTotal))}</td>
+  </tr>`);
+}
+
 function render(){
  const body=$("accountsBody"); body.innerHTML=""; let totalPrice=0,totalReset=0,totalProfit=0,s1Active=0,s1Pass=0,s1Fail=0,s2Active=0,s2Pass=0,s2Fail=0,masterActive=0,resetAccountCount=0;
  const groups=[]; for(let i=0;i<ACCOUNTS.length;i++){const a=ACCOUNTS[i],isBundle=String(a.bundle).toLowerCase()==="yes",key=isBundle?`${a.purchase_date}|${a.bundle}|${a.firm}`:`single-${i}`; if(i===0||key!==groups[groups.length-1].key)groups.push({key,start:i,end:i});else groups[groups.length-1].end=i;}
@@ -487,6 +595,7 @@ function render(){
  const payMobile=$("mobilePayoutsList");
  payMobile.innerHTML=PAYOUTS.map((p,i)=>`<div class="mobile-payout-card"><div class="mobile-account-title">Payout ${i+1}</div><div class="mobile-kv" style="margin-top:10px"><div><span>Master ID</span><b>${p.master_id||"—"}</b></div><div><span>Payout 1</span><b>${money(p.payout_1||0)}</b></div><div><span>Date</span><b>${displayDate(p.payout_1_date)}</b></div><div><span>Payout 2</span><b>${money(p.payout_2||0)}</b></div><div><span>Date</span><b>${displayDate(p.payout_2_date)}</b></div><div><span>Payout 3</span><b>${money(p.payout_3||0)}</b></div><div><span>Date</span><b>${displayDate(p.payout_3_date)}</b></div><div><span>Status</span><b>${statusPill(p.status||"dash")}</b></div></div><div class="mobile-actions"><button class="btn small" onclick="editPayout(${p.id})">Edit</button><button class="btn small danger" onclick="deletePayout(${p.id})">Delete</button></div></div>`).join("");
  const payBody=$("payoutsBody");payBody.innerHTML="";PAYOUTS.forEach((p,i)=>payBody.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td><td class="mono">${p.master_id||"—"}</td><td class="mono">${money(p.payout_1||0)}</td><td>${displayDate(p.payout_1_date)}</td><td class="mono">${money(p.payout_2||0)}</td><td>${displayDate(p.payout_2_date)}</td><td class="mono">${money(p.payout_3||0)}</td><td>${displayDate(p.payout_3_date)}</td><td>${statusPill(p.status||"dash")}</td><td><div class="table-actions"><button class="btn small" onclick="editPayout(${p.id})">Edit</button><button class="btn small danger" onclick="deletePayout(${p.id})">Delete</button></div></td></tr>`));$("payoutSub").textContent=totalPayout>0?`$${totalPayout.toFixed(2)} paid out so far`:"No payouts recorded yet on any account";
+  renderMonthlyStats();
 }
 let loadingData=false;
 async function loadData(){
