@@ -203,6 +203,7 @@
 
 <style>
   /* Add Account vs Edit Account fields */
+  /* Edit journey fields */
   .edit-only-field,
   .edit-step2-field,
   .edit-master-field { display:none!important; }
@@ -211,6 +212,8 @@
   body.editing-account #bundleStep1Fields { display:none!important; }
 
   body.editing-account .edit-only-field { display:flex!important; }
+  body.editing-account .edit-step2-field:not(.hidden),
+  body.editing-account .edit-master-field:not(.hidden) { display:flex!important; }
 </style>
 </head>
 <body>
