@@ -109,7 +109,7 @@
 
   .table-card{ background:var(--panel); border:1px solid var(--panel-border); border-radius:14px; overflow:hidden; margin-bottom:32px; }
   .table-scroll{ overflow-x:auto; }
-  table{ width:100%; border-collapse:collapse; min-width:1300px; }
+  table{ width:100%; border-collapse:collapse; min-width:1500px; }
   thead th{
     text-align:left; font-size:11px; color:var(--muted); padding:14px 12px;
     border-bottom:1px solid var(--panel-border); white-space:nowrap; font-weight:600;
@@ -203,7 +203,6 @@
 
 <style>
   /* Add Account vs Edit Account fields */
-  /* Edit journey fields */
   .edit-only-field,
   .edit-step2-field,
   .edit-master-field { display:none!important; }
@@ -248,6 +247,9 @@
 <div class="field edit-master-field"><label>Master ID</label><input id="a_master_id"></div>
 <div class="field edit-master-field"><label>Master Status</label><select id="a_master_status"><option value="dash">—</option><option value="active">Active</option><option value="fail">Fail</option></select></div>
 <div class="field edit-master-field"><label>Total Profit ($)</label><input id="a_profit" type="number" step="0.01"></div>
+<div class="field edit-master-field"><label>Master Reset Fee</label><input id="a_master_reset_fee" type="number" step="0.01"></div>
+<div class="field edit-master-field"><label>Master Reset ID</label><input id="a_master_reset_id"></div>
+<div class="field edit-master-field"><label>Master Reset Status</label><select id="a_master_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="fail">Fail</option></select></div>
 </div><div class="modal-actions"><button class="btn" id="cancelModal">Cancel</button><button class="btn primary" id="saveAccountBtn">Save Account</button></div></div>
 <div id="payoutForm" class="hidden"><div class="form-grid"><div class="field"><label>Master ID</label><input id="p_master_id" placeholder="Enter master account ID"></div><div class="field"><label>Payout 1 ($)</label><input id="p_payout_1" type="number" step="0.01"></div><div class="field"><label>Payout 1 Date</label><input id="p_payout_1_date" type="date"></div><div class="field"><label>Payout 2 ($)</label><input id="p_payout_2" type="number" step="0.01"></div><div class="field"><label>Payout 2 Date</label><input id="p_payout_2_date" type="date"></div><div class="field"><label>Payout 3 ($)</label><input id="p_payout_3" type="number" step="0.01"></div><div class="field"><label>Payout 3 Date</label><input id="p_payout_3_date" type="date"></div><div class="field"><label>Status</label><select id="p_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" id="savePayoutBtn">Save Payout</button></div></div></div></div>
 <div class="wrap hidden" id="appWrap">
@@ -392,7 +394,8 @@
             <th colspan="3">Step 1 Reset (after fail)</th>
             <th colspan="2">Step 2</th>
             <th colspan="3">Step 2 Reset (after fail)</th>
-            <th colspan="2">Master (live)</th>
+            <th colspan="3">Master (live)</th>
+            <th colspan="3">Master Reset</th>
             <th></th>
           </tr>
           <tr>
@@ -402,7 +405,8 @@
             <th>Account ID</th><th>Status</th>
             <th>Fee</th><th>New ID</th><th>Status</th>
             <th>Account ID</th><th>Status</th>
-            <th>Profit</th><th>Actions</th>
+            <th>Profit</th>
+            <th>Fee</th><th>New ID</th><th>Status</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="accountsBody"></tbody>
@@ -473,9 +477,11 @@ function renderMonthlyStats(){
     const price=Number(a.price)||0;
     const reset1=Number(a.step1_reset_fee)||0;
     const reset2=Number(a.step2_reset_fee)||0;
+    const resetMaster=Number(a.master_reset_fee)||0;
     if(price>0 && !(funding>0 && price===funding))row.investment+=price;
     if(reset1>0 && !(funding>0 && reset1===funding))row.reset+=reset1;
     if(reset2>0 && !(funding>0 && reset2===funding))row.reset+=reset2;
+    if(resetMaster>0 && !(funding>0 && resetMaster===funding))row.reset+=resetMaster;
   });
 
   PAYOUTS.forEach(p=>{
@@ -536,12 +542,14 @@ function render(){
    const price=Number(a.price)||0;
    const reset1=Number(a.step1_reset_fee)||0;
    const reset2=Number(a.step2_reset_fee)||0;
+   const resetMaster=Number(a.master_reset_fee)||0;
 
    // Some older saved records may have accidentally copied Funding Size
    // into Price/Reset Fee. Ignore those values when they equal Funding Size.
    if(price>0 && !(funding>0 && price===funding)) totalPrice+=price;
    totalReset+=(reset1>0 && !(funding>0 && reset1===funding)?reset1:0)
-             +(reset2>0 && !(funding>0 && reset2===funding)?reset2:0);
+             +(reset2>0 && !(funding>0 && reset2===funding)?reset2:0)
+             +(resetMaster>0 && !(funding>0 && resetMaster===funding)?resetMaster:0);
    totalProfit+=Number(a.profit)||0;
    if(a.step1_status==="active")s1Active++;if(a.step1_status==="pass")s1Pass++;if(a.step1_status==="fail")s1Fail++;if(a.step2_status==="active")s2Active++;if(a.step2_status==="pass")s2Pass++;if(a.step2_status==="fail")s2Fail++;if(a.master_status==="active")masterActive++;
    const r1status=String(a.step1_reset_status||"dash").toLowerCase();
@@ -550,9 +558,14 @@ function render(){
     // This also handles data saved by older versions of the dashboard.
     if(a.step1_reset_id || r1status!=="dash"){resetAccountCount++;if(r1status==="active")s1Active++;if(r1status==="pass")s1Pass++;if(r1status==="fail"||r1status==="failed")s1Fail++;}
     if(a.step2_reset_id || r2status!=="dash"){resetAccountCount++;if(r2status==="active")s2Active++;if(r2status==="pass")s2Pass++;if(r2status==="fail"||r2status==="failed")s2Fail++;}
+    const rmstatus=String(a.master_reset_status||"dash").toLowerCase();
+    if(a.master_reset_id || rmstatus!=="dash") resetAccountCount++;
    const g=groupByRow.get(i),first=g&&i===g.start,rowspan=g?(g.end-g.start+1):1,purchaseCells=first?`<td rowspan="${rowspan}" class="purchase-date">${displayDate(a.purchase_date)}</td><td rowspan="${rowspan}" class="purchase-bundle">${a.bundle==="Yes"?"BUNDLE":(a.bundle||"No")}</td><td rowspan="${rowspan}" class="mono purchase-price">${a.price!=null?money(a.price):""}</td><td rowspan="${rowspan}" class="purchase-firm">${a.firm||"—"}</td>`:"";
-   body.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td>${purchaseCells}<td class="mono">${a.funding_size!=null && a.funding_size!=="" ? "$"+Number(a.funding_size).toLocaleString("en-US",{maximumFractionDigits:0}) : "—"}</td><td class="mono">${a.step1_id||"—"}</td><td>${statusPill(a.step1_status||"dash")}</td><td class="mono">${money(a.step1_reset_fee||0)}</td><td class="mono">${a.step1_reset_id||"—"}</td><td>${statusPill(a.step1_reset_status||"dash")}</td><td class="mono">${a.step2_id||"—"}</td><td>${statusPill(a.step2_status||"dash")}</td><td class="mono">${money(a.step2_reset_fee||0)}</td><td class="mono">${a.step2_reset_id||"—"}</td><td>${statusPill(a.step2_reset_status||"dash")}</td><td class="mono">${a.master_id||"—"}</td><td>${statusPill(a.master_status||"dash")}</td><td class="mono">${money(a.profit||0)}</td><td><div class="table-actions"><button class="btn small" onclick="editAccount(${a.id})">Edit</button><button class="btn small danger" onclick="deleteAccount(${a.id})">Delete</button></div></td></tr>`); });
- body.insertAdjacentHTML("beforeend",`<tr class="totals-row"><td colspan="3">Totals</td><td class="mono">${money(totalPrice)}</td><td></td><td></td><td></td><td></td><td class="mono">${money(ACCOUNTS.reduce((s,a)=>{const f=Number(a.funding_size)||0,r=Number(a.step1_reset_fee)||0;return s+(r===f&&f>0?0:r)},0))}</td><td colspan="2"></td><td></td><td></td><td class="mono">${money(ACCOUNTS.reduce((s,a)=>{const f=Number(a.funding_size)||0,r=Number(a.step2_reset_fee)||0;return s+(r===f&&f>0?0:r)},0))}</td><td colspan="2"></td><td></td><td></td><td class="mono">${money(totalProfit)}</td><td></td></tr>`);
+   body.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td>${purchaseCells}<td class="mono">${a.funding_size!=null && a.funding_size!=="" ? "$"+Number(a.funding_size).toLocaleString("en-US",{maximumFractionDigits:0}) : "—"}</td><td class="mono">${a.step1_id||"—"}</td><td>${statusPill(a.step1_status||"dash")}</td><td class="mono">${money(a.step1_reset_fee||0)}</td><td class="mono">${a.step1_reset_id||"—"}</td><td>${statusPill(a.step1_reset_status||"dash")}</td><td class="mono">${a.step2_id||"—"}</td><td>${statusPill(a.step2_status||"dash")}</td><td class="mono">${money(a.step2_reset_fee||0)}</td><td class="mono">${a.step2_reset_id||"—"}</td><td>${statusPill(a.step2_reset_status||"dash")}</td><td class="mono">${a.master_id||"—"}</td><td>${statusPill(a.master_status||"dash")}</td><td class="mono">${money(a.profit||0)}</td><td class="mono">${money(a.master_reset_fee||0)}</td><td class="mono">${a.master_reset_id||"—"}</td><td>${statusPill(a.master_reset_status||"dash")}</td><td><div class="table-actions"><button class="btn small" onclick="editAccount(${a.id})">Edit</button><button class="btn small danger" onclick="deleteAccount(${a.id})">Delete</button></div></td></tr>`); });
+ const reset1Total=ACCOUNTS.reduce((s,a)=>{const f=Number(a.funding_size)||0,r=Number(a.step1_reset_fee)||0;return s+(r>0&&!(f>0&&r===f)?r:0)},0);
+  const reset2Total=ACCOUNTS.reduce((s,a)=>{const f=Number(a.funding_size)||0,r=Number(a.step2_reset_fee)||0;return s+(r>0&&!(f>0&&r===f)?r:0)},0);
+  const masterResetTotal=ACCOUNTS.reduce((s,a)=>{const f=Number(a.funding_size)||0,r=Number(a.master_reset_fee)||0;return s+(r>0&&!(f>0&&r===f)?r:0)},0);
+  body.insertAdjacentHTML("beforeend",`<tr class="totals-row"><td colspan="3">Totals</td><td class="mono">${money(totalPrice)}</td><td></td><td></td><td></td><td></td><td class="mono">${money(reset1Total)}</td><td colspan="2"></td><td></td><td></td><td class="mono">${money(reset2Total)}</td><td colspan="2"></td><td></td><td></td><td class="mono">${money(totalProfit)}</td><td class="mono">${money(masterResetTotal)}</td><td colspan="3"></td></tr>`);
  const totalInvest=totalPrice+totalReset,totalPayout=PAYOUTS.reduce((sum,p)=>sum+(Number(p.payout_1)||0)+(Number(p.payout_2)||0)+(Number(p.payout_3)||0),0),netPL=totalPayout-totalInvest;
  $("accountCount").textContent=`${ACCOUNTS.length+resetAccountCount} accounts tracked (${ACCOUNTS.length} original + ${resetAccountCount} reset)`;$("netPL").textContent=(netPL<0?"−":"")+money(Math.abs(netPL));$("netPL").className="value "+(netPL<0?"loss":"gain");$("netBar").style.background=netPL<0?"var(--loss)":"var(--gain)";$("totalInvest").textContent=money(totalInvest);$("totalPayout").textContent=money(totalPayout);
  $("s1Active").textContent=s1Active;$("s2Active").textContent=s2Active;$("totalAcc").textContent=ACCOUNTS.length+resetAccountCount;$("s1Pass").textContent=s1Pass;$("s2Pass").textContent=s2Pass;$("masterCount").textContent=masterActive;$("s1Fail").textContent=s1Fail;$("s2Fail").textContent=s2Fail;$("totalFail").textContent=s1Fail+s2Fail;
@@ -593,6 +606,7 @@ function render(){
    <div class="mobile-section"><div class="mobile-section-title">Step 2</div><div class="mobile-kv"><div><span>Account ID</span><b>${a.step2_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step2_status||"dash")}</b></div></div></div>
    <div class="mobile-section"><div class="mobile-section-title">Step 2 Reset</div><div class="mobile-kv"><div><span>Fee</span><b>${money(a.step2_reset_fee||0)}</b></div><div><span>New ID</span><b>${a.step2_reset_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step2_reset_status||"dash")}</b></div></div></div>
    <div class="mobile-section"><div class="mobile-section-title">Master / Profit</div><div class="mobile-kv"><div><span>Master ID</span><b>${a.master_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.master_status||"dash")}</b></div><div><span>Profit</span><b>${money(a.profit||0)}</b></div></div></div>
+   <div class="mobile-section"><div class="mobile-section-title">Master Reset</div><div class="mobile-kv"><div><span>Fee</span><b>${money(a.master_reset_fee||0)}</b></div><div><span>New ID</span><b>${a.master_reset_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.master_reset_status||"dash")}</b></div></div></div>
    <div class="mobile-actions"><button class="btn small" onclick="editAccount(${a.id})">Edit</button><button class="btn small danger" onclick="deleteAccount(${a.id})">Delete</button></div>
  </div>`).join("");
  const payMobile=$("mobilePayoutsList");
@@ -699,7 +713,10 @@ function openModal(type,record=null){
       step2_reset_status:record?.step2_reset_status||"dash",
       master_id:record?.master_id||"",
       master_status:record?.master_status||"dash",
-      profit:record?.profit||0
+      profit:record?.profit||0,
+      master_reset_fee:record?.master_reset_fee||0,
+      master_reset_id:record?.master_reset_id||"",
+      master_reset_status:record?.master_reset_status||"dash"
     };
     Object.entries(f).forEach(([k,v])=>{const el=$("a_"+k);if(el)el.value=v});
     $("a_bundle_count").value="3";
@@ -736,7 +753,10 @@ async function saveAccount(){
     step2_reset_status:editingAccountId?(val("a_step2_reset_status")||"dash"):"dash",
     master_id:editingAccountId?nullableText(val("a_master_id")):null,
     master_status:editingAccountId?(val("a_master_status")||"dash"):"dash",
-    profit:editingAccountId?Number(val("a_profit")||0):0
+    profit:editingAccountId?Number(val("a_profit")||0):0,
+    master_reset_fee:editingAccountId?Number(val("a_master_reset_fee")||0):0,
+    master_reset_id:editingAccountId?nullableText(val("a_master_reset_id")):null,
+    master_reset_status:editingAccountId?(val("a_master_reset_status")||"dash"):"dash"
   };
 
   if(editingAccountId){
