@@ -211,8 +211,19 @@
   body.editing-account #bundleStep1Fields { display:none!important; }
 
   body.editing-account .edit-only-field { display:flex!important; }
+  /* Profit is entered later when editing an account, never while adding one. */
+  .profit-edit-only { display:none!important; }
+  body.editing-account .profit-edit-only { display:flex!important; }
   body.editing-account .edit-step2-field:not(.hidden),
   body.editing-account .edit-master-field:not(.hidden) { display:flex!important; }
+
+  /* Instant Funding starts at the Master / Live stage. */
+  body.instant-account #singleStep1Fields { display:none!important; }
+  body.instant-account .edit-step2-field,
+  body.instant-account.editing-account .edit-only-field { display:none!important; }
+  body.instant-account .edit-master-field:not(.hidden) { display:flex!important; }
+  body.instant-account:not(.editing-account) .master-reset-field { display:none!important; }
+
 </style>
 </head>
 <body>
@@ -222,6 +233,7 @@
 <div class="field"><label>Price ($)</label><input id="a_price" type="number" step="0.01"></div>
 <div class="field"><label>Firm</label><input id="a_firm"></div>
 <div class="field"><label>Funding Size ($)</label><input id="a_funding_size" type="number" step="1" placeholder="e.g. 5000"></div>
+<div class="field"><label>Account Type</label><select id="a_account_type"><option value="2-step">2-Step Account</option><option value="instant">Instant Funding</option></select></div>
 <div class="field"><label>Bundle Buy</label><select id="a_bundle"><option>No</option><option>Yes</option></select></div>
 <div class="field bundle-count-field hidden" id="bundleCountWrap"><label>How many accounts in bundle?</label><select id="a_bundle_count"><option value="2">2 Accounts</option><option value="3" selected>3 Accounts</option><option value="5">5 Accounts</option></select></div>
 <div id="singleStep1Fields" style="grid-column:1/-1">
@@ -244,12 +256,12 @@
 <div class="field edit-step2-field"><label>Step 2 Reset Fee</label><input id="a_step2_reset_fee" type="number" step="0.01"></div>
 <div class="field edit-step2-field"><label>Step 2 Reset ID</label><input id="a_step2_reset_id"></div>
 <div class="field edit-step2-field"><label>Step 2 Reset Status</label><select id="a_step2_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>
-<div class="field edit-master-field"><label>Master ID</label><input id="a_master_id"></div>
+<div class="field edit-master-field"><label>Master / Live Account ID</label><input id="a_master_id"></div>
 <div class="field edit-master-field"><label>Master Status</label><select id="a_master_status"><option value="dash">—</option><option value="active">Active</option><option value="fail">Fail</option></select></div>
-<div class="field edit-master-field"><label>Total Profit ($)</label><input id="a_profit" type="number" step="0.01"></div>
-<div class="field edit-master-field"><label>Master Reset Fee</label><input id="a_master_reset_fee" type="number" step="0.01"></div>
-<div class="field edit-master-field"><label>Master Reset ID</label><input id="a_master_reset_id"></div>
-<div class="field edit-master-field"><label>Master Reset Status</label><select id="a_master_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="fail">Fail</option></select></div>
+<div class="field edit-master-field profit-edit-only"><label>Total Profit ($)</label><input id="a_profit" type="number" step="0.01"></div>
+<div class="field edit-master-field master-reset-field"><label>Master Reset Fee</label><input id="a_master_reset_fee" type="number" step="0.01"></div>
+<div class="field edit-master-field master-reset-field"><label>Master Reset ID</label><input id="a_master_reset_id"></div>
+<div class="field edit-master-field master-reset-field"><label>Master Reset Status</label><select id="a_master_reset_status"><option value="dash">—</option><option value="active">Active</option><option value="fail">Fail</option></select></div>
 </div><div class="modal-actions"><button class="btn" id="cancelModal">Cancel</button><button class="btn primary" id="saveAccountBtn">Save Account</button></div></div>
 <div id="payoutForm" class="hidden"><div class="form-grid"><div class="field"><label>Master ID</label><input id="p_master_id" placeholder="Enter master account ID"></div><div class="field"><label>Payout 1 ($)</label><input id="p_payout_1" type="number" step="0.01"></div><div class="field"><label>Payout 1 Date</label><input id="p_payout_1_date" type="date"></div><div class="field"><label>Payout 2 ($)</label><input id="p_payout_2" type="number" step="0.01"></div><div class="field"><label>Payout 2 Date</label><input id="p_payout_2_date" type="date"></div><div class="field"><label>Payout 3 ($)</label><input id="p_payout_3" type="number" step="0.01"></div><div class="field"><label>Payout 3 Date</label><input id="p_payout_3_date" type="date"></div><div class="field"><label>Status</label><select id="p_status"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" id="savePayoutBtn">Save Payout</button></div></div></div></div>
 <div class="wrap hidden" id="appWrap">
@@ -389,7 +401,7 @@
       <table>
         <thead>
           <tr class="group">
-            <th colspan="6"></th>
+            <th colspan="7"></th>
             <th colspan="2">Step 1</th>
             <th colspan="3">Step 1 Reset (after fail)</th>
             <th colspan="2">Step 2</th>
@@ -399,7 +411,7 @@
             <th></th>
           </tr>
           <tr>
-            <th>#</th><th>Date</th><th>Bundle</th><th>Price</th><th>Firm</th><th>Funding Size</th>
+            <th>#</th><th>Date</th><th>Bundle</th><th>Account Type</th><th>Price</th><th>Firm</th><th>Funding Size</th>
             <th>Account ID</th><th>Status</th>
             <th>Fee</th><th>New ID</th><th>Status</th>
             <th>Account ID</th><th>Status</th>
@@ -560,7 +572,7 @@ function render(){
     if(a.step2_reset_id || r2status!=="dash"){resetAccountCount++;if(r2status==="active")s2Active++;if(r2status==="pass")s2Pass++;if(r2status==="fail"||r2status==="failed")s2Fail++;}
     const rmstatus=String(a.master_reset_status||"dash").toLowerCase();
     if(a.master_reset_id || rmstatus!=="dash") resetAccountCount++;
-   const g=groupByRow.get(i),first=g&&i===g.start,rowspan=g?(g.end-g.start+1):1,purchaseCells=first?`<td rowspan="${rowspan}" class="purchase-date">${displayDate(a.purchase_date)}</td><td rowspan="${rowspan}" class="purchase-bundle">${a.bundle==="Yes"?"BUNDLE":(a.bundle||"No")}</td><td rowspan="${rowspan}" class="mono purchase-price">${a.price!=null?money(a.price):""}</td><td rowspan="${rowspan}" class="purchase-firm">${a.firm||"—"}</td>`:"";
+   const g=groupByRow.get(i),first=g&&i===g.start,rowspan=g?(g.end-g.start+1):1,purchaseCells=first?`<td rowspan="${rowspan}" class="purchase-date">${displayDate(a.purchase_date)}</td><td rowspan="${rowspan}" class="purchase-bundle">${a.bundle==="Yes"?"BUNDLE":(a.bundle||"No")}</td><td rowspan="${rowspan}">${String(a.account_type||"2-step").toLowerCase()==="instant"?"Instant Funding":"2-Step"}</td><td rowspan="${rowspan}" class="mono purchase-price">${a.price!=null?money(a.price):""}</td><td rowspan="${rowspan}" class="purchase-firm">${a.firm||"—"}</td>`:"";
    body.insertAdjacentHTML("beforeend",`<tr><td>${i+1}</td>${purchaseCells}<td class="mono">${a.funding_size!=null && a.funding_size!=="" ? "$"+Number(a.funding_size).toLocaleString("en-US",{maximumFractionDigits:0}) : "—"}</td><td class="mono">${a.step1_id||"—"}</td><td>${statusPill(a.step1_status||"dash")}</td><td class="mono">${money(a.step1_reset_fee||0)}</td><td class="mono">${a.step1_reset_id||"—"}</td><td>${statusPill(a.step1_reset_status||"dash")}</td><td class="mono">${a.step2_id||"—"}</td><td>${statusPill(a.step2_status||"dash")}</td><td class="mono">${money(a.step2_reset_fee||0)}</td><td class="mono">${a.step2_reset_id||"—"}</td><td>${statusPill(a.step2_reset_status||"dash")}</td><td class="mono">${a.master_id||"—"}</td><td>${statusPill(a.master_status||"dash")}</td><td class="mono">${money(a.profit||0)}</td><td class="mono">${money(a.master_reset_fee||0)}</td><td class="mono">${a.master_reset_id||"—"}</td><td>${statusPill(a.master_reset_status||"dash")}</td><td><div class="table-actions"><button class="btn small" onclick="editAccount(${a.id})">Edit</button><button class="btn small danger" onclick="deleteAccount(${a.id})">Delete</button></div></td></tr>`); });
  const reset1Total=ACCOUNTS.reduce((s,a)=>{const f=Number(a.funding_size)||0,r=Number(a.step1_reset_fee)||0;return s+(r>0&&!(f>0&&r===f)?r:0)},0);
   const reset2Total=ACCOUNTS.reduce((s,a)=>{const f=Number(a.funding_size)||0,r=Number(a.step2_reset_fee)||0;return s+(r>0&&!(f>0&&r===f)?r:0)},0);
@@ -600,7 +612,7 @@ function render(){
  $("perfAvgInvestmentDetail").textContent=`${money(totalInvest)} total investment ÷ ${trackedAccounts} tracked`;
  const mobileBody=$("mobileAccountsList");
  mobileBody.innerHTML=ACCOUNTS.map((a,i)=>`<div class="mobile-account-card">
-   <div class="mobile-account-top"><div><div class="mobile-account-title">Account ${i+1} · ${a.firm||"—"}</div><div class="mobile-account-sub">${displayDate(a.purchase_date)} · ${a.bundle==="Yes"?"Bundle":"Single"} · ${money(a.price)} · Funding ${a.funding_size!=null && a.funding_size!=="" ? "$"+Number(a.funding_size).toLocaleString("en-US",{maximumFractionDigits:0}) : "—"}</div></div><div>${statusPill(a.master_status||a.step2_status||a.step1_status||"dash")}</div></div>
+   <div class="mobile-account-top"><div><div class="mobile-account-title">Account ${i+1} · ${a.firm||"—"}</div><div class="mobile-account-sub">${displayDate(a.purchase_date)} · ${String(a.account_type||"2-step").toLowerCase()==="instant"?"Instant Funding":"2-Step"} · ${a.bundle==="Yes"?"Bundle":"Single"} · ${money(a.price)} · Funding ${a.funding_size!=null && a.funding_size!=="" ? "$"+Number(a.funding_size).toLocaleString("en-US",{maximumFractionDigits:0}) : "—"}</div></div><div>${statusPill(a.master_status||a.step2_status||a.step1_status||"dash")}</div></div>
    <div class="mobile-section"><div class="mobile-section-title">Step 1</div><div class="mobile-kv"><div><span>Account ID</span><b>${a.step1_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step1_status||"dash")}</b></div></div></div>
    <div class="mobile-section"><div class="mobile-section-title">Step 1 Reset</div><div class="mobile-kv"><div><span>Fee</span><b>${money(a.step1_reset_fee||0)}</b></div><div><span>New ID</span><b>${a.step1_reset_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step1_reset_status||"dash")}</b></div></div></div>
    <div class="mobile-section"><div class="mobile-section-title">Step 2</div><div class="mobile-kv"><div><span>Account ID</span><b>${a.step2_id||"—"}</b></div><div><span>Status</span><b>${statusPill(a.step2_status||"dash")}</b></div></div></div>
@@ -631,63 +643,69 @@ async function loadData(){
   }finally{loadingData=false;}
 }
 function updateEditJourneyFields(){
-  if(!editingAccountId){
-    document.querySelectorAll(".edit-step2-field,.edit-master-field")
-      .forEach(el=>el.classList.add("hidden"));
-    return;
-  }
-
+  const instant=val("a_account_type")==="instant";
+  const bundle=!editingAccountId && val("a_bundle")==="Yes";
   const s1=val("a_step1_status");
   const r1=val("a_step1_reset_status");
   const s2=val("a_step2_status");
   const r2=val("a_step2_reset_status");
-
-  const step2Ready = s1==="pass" || r1==="pass";
-  const masterReady = s2==="pass" || r2==="pass";
-
+  const step2Ready=!instant && !!editingAccountId && (s1==="pass" || r1==="pass");
+  const masterReady=instant ? !bundle : !!editingAccountId && (s2==="pass" || r2==="pass");
   document.querySelectorAll(".edit-step2-field")
     .forEach(el=>el.classList.toggle("hidden",!step2Ready));
-
   document.querySelectorAll(".edit-master-field")
     .forEach(el=>el.classList.toggle("hidden",!masterReady));
 }
 function updateBundleFields(){
-  // Bundle setup is only editable when creating a new account.
   const isEditing=!!editingAccountId;
+  const instant=val("a_account_type")==="instant";
+  document.body.classList.toggle("instant-account",instant);
   if(isEditing){
     $("bundleCountWrap").classList.add("hidden");
     $("bundleStep1Fields").classList.add("hidden");
     $("singleStep1Fields").classList.remove("hidden");
-    document.querySelectorAll(".edit-only-field").forEach(el=>el.style.display="flex");
+    updateEditJourneyFields();
     return;
   }
-  document.querySelectorAll(".edit-only-field,.edit-step2-field,.edit-master-field")
-    .forEach(el=>el.style.display="none");
   const isBundle=val("a_bundle")==="Yes";
   $("bundleCountWrap").classList.toggle("hidden",!isBundle);
   $("singleStep1Fields").classList.toggle("hidden",isBundle);
   $("bundleStep1Fields").classList.toggle("hidden",!isBundle);
   if(isBundle) renderBundleAccountFields(Number(val("a_bundle_count")||3));
+  updateEditJourneyFields();
 }
 
 function renderBundleAccountFields(count){
   const box=$("bundleAccountsFields");
   if(!box)return;
+  const instant=val("a_account_type")==="instant";
   const old={};
-  box.querySelectorAll("[data-bundle-id]").forEach(el=>old[el.dataset.bundleId]=el.value);
+  box.querySelectorAll("input,select").forEach(el=>old[el.id]=el.value);
+  box.previousElementSibling.textContent=instant
+    ? "Bundle Master / Live Account IDs & Status"
+    : "Bundle Account IDs & Step 1 Status";
   box.innerHTML="";
   for(let i=1;i<=count;i++){
+    const prefix=instant?"master":"step1";
+    const title=instant?"Master / Live":"Step 1";
+    const statusOptions=instant
+      ? '<option value="dash">—</option><option value="active" selected>Active</option><option value="fail">Fail</option>'
+      : '<option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option>';
     box.insertAdjacentHTML("beforeend",`<div class="bundle-account-row">
-      <div class="field"><label>Account ${i} — Step 1 ID</label><input id="bundle_step1_id_${i}" data-bundle-id="id${i}" placeholder="Enter Step 1 ID"></div>
-      <div class="field"><label>Account ${i} — Step 1 Status</label><select id="bundle_step1_status_${i}"><option value="dash">—</option><option value="active">Active</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>
+      <div class="field"><label>Account ${i} — ${title} ID</label><input id="bundle_${prefix}_id_${i}" placeholder="Enter ${title} ID"></div>
+      <div class="field"><label>Account ${i} — ${title} Status</label><select id="bundle_${prefix}_status_${i}">${statusOptions}</select></div>
     </div>`);
-    if(old["id"+i]!==undefined)$("bundle_step1_id_"+i).value=old["id"+i];
+    for(const suffix of ["id","status"]){
+      const el=$("bundle_"+prefix+"_"+suffix+"_"+i);
+      if(old[el.id]!==undefined)el.value=old[el.id];
+    }
   }
 }
 
 function openModal(type,record=null){
   const isAccount=type==="account";
   document.body.classList.toggle("editing-account", !!(isAccount && record));
+  if(!isAccount)document.body.classList.remove("instant-account");
   editingAccountId=isAccount?(record?.id||null):null;
   editingPayoutId=!isAccount?(record?.id||null):null;
   $("modalTitle").textContent=(record?"Edit ":"Add ")+(isAccount?"Account":"Payout");
@@ -698,6 +716,7 @@ function openModal(type,record=null){
     const f={
       purchase_date:record?.purchase_date||new Date().toISOString().slice(0,10),
       bundle:record?.bundle||"No",
+      account_type:record?.account_type||"2-step",
       price:record?.price??"",
       firm:record?.firm||"",
       funding_size:record?.funding_size??"",
@@ -720,6 +739,7 @@ function openModal(type,record=null){
     };
     Object.entries(f).forEach(([k,v])=>{const el=$("a_"+k);if(el)el.value=v});
     $("a_bundle_count").value="3";
+    if(!record && val("a_account_type")==="instant")$("a_master_status").value="active";
     updateBundleFields();
     if(record){
       $("bundleCountWrap").classList.add("hidden");
@@ -733,27 +753,43 @@ function openModal(type,record=null){
   }
   $("modalOverlay").classList.remove("hidden");
 }
-function closeModal(){$("modalOverlay").classList.add("hidden");document.body.classList.remove("editing-account");editingAccountId=null;editingPayoutId=null}function val(id){return $(id).value.trim()}
+function closeModal(){$("modalOverlay").classList.add("hidden");document.body.classList.remove("editing-account","instant-account");editingAccountId=null;editingPayoutId=null}function val(id){return $(id).value.trim()}
 async function saveAccount(){
-  const isBundle=val("a_bundle")==="Yes";
+  const instant=val("a_account_type")==="instant";
+  const isBundle=!editingAccountId && val("a_bundle")==="Yes";
   const bundleCount=isBundle?Number(val("a_bundle_count")||3):1;
+  if(instant && !isBundle && !val("a_master_id")){
+    alert("Please enter the Master / Live Account ID for Instant Funding.");
+    $("a_master_id").focus();
+    return;
+  }
+  if(instant && isBundle){
+    for(let i=1;i<=bundleCount;i++){
+      if(!val("bundle_master_id_"+i)){
+        alert("Please enter Master / Live Account ID for bundle account "+i+".");
+        $("bundle_master_id_"+i).focus();
+        return;
+      }
+    }
+  }
 
   const common={
     purchase_date:val("a_purchase_date")||null,
     bundle:val("a_bundle")||"No",
+    account_type:val("a_account_type")||"2-step",
     firm:val("a_firm")||null,
     funding_size:val("a_funding_size")===""?null:Number(val("a_funding_size")),
-    step1_reset_fee:editingAccountId?Number(val("a_step1_reset_fee")||0):0,
-    step1_reset_id:editingAccountId?nullableText(val("a_step1_reset_id")):null,
-    step1_reset_status:editingAccountId?(val("a_step1_reset_status")||"dash"):"dash",
-    step2_id:editingAccountId?nullableText(val("a_step2_id")):null,
-    step2_status:editingAccountId?(val("a_step2_status")||"dash"):"dash",
-    step2_reset_fee:editingAccountId?Number(val("a_step2_reset_fee")||0):0,
-    step2_reset_id:editingAccountId?nullableText(val("a_step2_reset_id")):null,
-    step2_reset_status:editingAccountId?(val("a_step2_reset_status")||"dash"):"dash",
-    master_id:editingAccountId?nullableText(val("a_master_id")):null,
-    master_status:editingAccountId?(val("a_master_status")||"dash"):"dash",
-    profit:editingAccountId?Number(val("a_profit")||0):0,
+    step1_reset_fee:editingAccountId&&!instant?Number(val("a_step1_reset_fee")||0):0,
+    step1_reset_id:editingAccountId&&!instant?nullableText(val("a_step1_reset_id")):null,
+    step1_reset_status:editingAccountId&&!instant?(val("a_step1_reset_status")||"dash"):"dash",
+    step2_id:editingAccountId&&!instant?nullableText(val("a_step2_id")):null,
+    step2_status:editingAccountId&&!instant?(val("a_step2_status")||"dash"):"dash",
+    step2_reset_fee:editingAccountId&&!instant?Number(val("a_step2_reset_fee")||0):0,
+    step2_reset_id:editingAccountId&&!instant?nullableText(val("a_step2_reset_id")):null,
+    step2_reset_status:editingAccountId&&!instant?(val("a_step2_reset_status")||"dash"):"dash",
+    master_id:editingAccountId||(instant&&!isBundle)?nullableText(val("a_master_id")):null,
+    master_status:editingAccountId||(instant&&!isBundle)?(val("a_master_status")||"dash"):"dash",
+    profit:editingAccountId||(instant&&!isBundle)?Number(val("a_profit")||0):0,
     master_reset_fee:editingAccountId?Number(val("a_master_reset_fee")||0):0,
     master_reset_id:editingAccountId?nullableText(val("a_master_reset_id")):null,
     master_reset_status:editingAccountId?(val("a_master_reset_status")||"dash"):"dash"
@@ -763,8 +799,8 @@ async function saveAccount(){
     const payload={
       ...common,
       price:val("a_price")===""?null:Number(val("a_price")),
-      step1_id:nullableText(val("a_step1_id")),
-      step1_status:val("a_step1_status")||"dash"
+      step1_id:instant?null:nullableText(val("a_step1_id")),
+      step1_status:instant?"dash":val("a_step1_status")||"dash"
     };
     const {error}=await supabase.from("accounts").update(payload).eq("id",editingAccountId);
     if(error){alert(error.message);return}
@@ -774,20 +810,23 @@ async function saveAccount(){
   let payloads=[];
   if(isBundle){
     for(let i=1;i<=bundleCount;i++){
-      const idEl=$("bundle_step1_id_"+i), statusEl=$("bundle_step1_status_"+i);
+      const prefix=instant?"master":"step1";
+      const idEl=$("bundle_"+prefix+"_id_"+i), statusEl=$("bundle_"+prefix+"_status_"+i);
       payloads.push({
         ...common,
         price:i===1 && val("a_price")!==""?Number(val("a_price")):null,
-        step1_id:idEl?nullableText(idEl.value.trim()):null,
-        step1_status:statusEl?statusEl.value||"dash":"dash"
+        step1_id:instant?null:(idEl?nullableText(idEl.value.trim()):null),
+        step1_status:instant?"dash":(statusEl?statusEl.value||"dash":"dash"),
+        master_id:instant?(idEl?nullableText(idEl.value.trim()):null):null,
+        master_status:instant?(statusEl?statusEl.value||"dash":"dash"):"dash"
       });
     }
   }else{
     payloads=[{
       ...common,
       price:val("a_price")===""?null:Number(val("a_price")),
-      step1_id:nullableText(val("a_step1_id")),
-      step1_status:val("a_step1_status")||"dash"
+      step1_id:instant?null:nullableText(val("a_step1_id")),
+      step1_status:instant?"dash":val("a_step1_status")||"dash"
     }];
   }
 
@@ -817,7 +856,10 @@ function toggleTheme(){
 }
 applyTheme();
 function toggleAuth(){const signup=$("authMode").value!=="signup";$("authMode").value=signup?"signup":"signin";$("authTitle").textContent=signup?"Create your account":"Sign in to your dashboard";$("authButton").textContent=signup?"Create account":"Sign in";$("authToggle").innerHTML=signup?'Already have an account? <button type="button" onclick="toggleAuth()">Sign in</button>':'New here? <button type="button" onclick="toggleAuth()">Create account</button>'}window.toggleAuth=toggleAuth;
-$("a_bundle").onchange=updateBundleFields;$("a_bundle_count").onchange=()=>renderBundleAccountFields(Number(val("a_bundle_count")||3));$("a_step1_status").onchange=updateEditJourneyFields;$("a_step1_reset_status").onchange=updateEditJourneyFields;$("a_step2_status").onchange=updateEditJourneyFields;$("a_step2_reset_status").onchange=updateEditJourneyFields;$("addAccountBtn").onclick=()=>openModal("account");$("addPayoutBtn").onclick=()=>openModal("payout");$("themeBtn").onclick=toggleTheme;$("signOutBtn").onclick=async()=>{await supabase.auth.signOut();showAuth()};$("cancelModal").onclick=closeModal;$("saveAccountBtn").onclick=saveAccount;$("savePayoutBtn").onclick=savePayout;$("authButton").onclick=handleAuth;
+$("a_account_type").onchange=()=>{
+  if(!editingAccountId && val("a_account_type")==="instant" && val("a_master_status")==="dash")$("a_master_status").value="active";
+  updateBundleFields();
+};$("a_bundle").onchange=updateBundleFields;$("a_bundle_count").onchange=()=>renderBundleAccountFields(Number(val("a_bundle_count")||3));$("a_step1_status").onchange=updateEditJourneyFields;$("a_step1_reset_status").onchange=updateEditJourneyFields;$("a_step2_status").onchange=updateEditJourneyFields;$("a_step2_reset_status").onchange=updateEditJourneyFields;$("addAccountBtn").onclick=()=>openModal("account");$("addPayoutBtn").onclick=()=>openModal("payout");$("themeBtn").onclick=toggleTheme;$("signOutBtn").onclick=async()=>{await supabase.auth.signOut();showAuth()};$("cancelModal").onclick=closeModal;$("saveAccountBtn").onclick=saveAccount;$("savePayoutBtn").onclick=savePayout;$("authButton").onclick=handleAuth;
 supabase.auth.onAuthStateChange((event,session)=>{
   if(event==="SIGNED_IN") showApp();
   else if(event==="SIGNED_OUT") showAuth();
