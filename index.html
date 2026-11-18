@@ -212,7 +212,8 @@
 
   body.editing-account .edit-only-field { display:flex!important; }
   /* Profit is entered later when editing an account, never while adding one. */
-  .profit-edit-only { display:none!important; }
+  /* Never show Total Profit in Add Account, including Instant Funding. */
+  body:not(.editing-account) .profit-edit-only { display:none!important; }
   body.editing-account .profit-edit-only { display:flex!important; }
   body.editing-account .edit-step2-field:not(.hidden),
   body.editing-account .edit-master-field:not(.hidden) { display:flex!important; }
@@ -222,6 +223,7 @@
   body.instant-account .edit-step2-field,
   body.instant-account.editing-account .edit-only-field { display:none!important; }
   body.instant-account .edit-master-field:not(.hidden) { display:flex!important; }
+  body.instant-account:not(.editing-account) .profit-edit-only { display:none!important; }
   body.instant-account:not(.editing-account) .master-reset-field { display:none!important; }
 
 </style>
